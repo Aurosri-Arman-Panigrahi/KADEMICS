@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Kalinga Laboratories - VR Hub</title>
+    <!-- A-Frame -->
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #000; font-family: 'Segoe UI', system-ui, sans-serif; }
+        .logo { position: fixed; top: 16px; left: 16px; height: 48px; width: auto; z-index: 9999; pointer-events: none; }
+        .top-nav { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); text-align: center; background: rgba(255,255,255,0.9); padding: 10px 20px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,51,102,0.2); z-index: 9999; pointer-events: auto; }
+        .top-nav h1 { margin: 0; font-size: 1.2rem; color: #003366; }
+    </style>
+    <script>
+        AFRAME.registerComponent('hover-effect', {
+            init: function () {
+                var el = this.el;
+                var defaultColor = el.getAttribute('color');
+                el.addEventListener('mouseenter', function () { el.setAttribute('color', '#ffffff'); });
+                el.addEventListener('mouseleave', function () { el.setAttribute('color', defaultColor); });
+            }
+        });
+
+        AFRAME.registerComponent('on-click', {
+            schema: {type: 'string'},
+            init: function () {
+                var action = this.data;
+                this.el.addEventListener('click', function () { new Function(action)(); });
+            }
+        });
+    </script>
+</head>
+<body>
+    <img src="assets/logo.png" alt="Kalinga Labs" class="logo">
+    <div class="top-nav">
+        <h1>Kalinga Mega-Campus Hub</h1>
+    </div>
+
+    <a-scene cursor="rayOrigin: mouse" raycaster="objects: .clickable">
+        
+        <!-- The Grand Atrium Environment -->
+        <a-plane position="0 0 0" rotation="-90 0 0" width="50" height="50" color="#8b9dc3" material="roughness: 0.7"></a-plane>
+        <a-plane position="0 12 0" rotation="90 0 0" width="50" height="50" color="#ffffff" material="roughness: 0.9"></a-plane>
+        
+        <!-- Curved Back Wall -->
+        <a-cylinder position="0 6 -15" radius="16" height="12" theta-start="120" theta-length="120" color="#dfe3ee" material="side: double; roughness: 0.5" open-ended="true"></a-cylinder>
+
+        <!-- Lights -->
+        <a-light type="ambient" color="#ffffff" intensity="0.5"></a-light>
+        <a-light type="point" position="0 10 -5" intensity="0.6" color="#e6ffff"></a-light>
+        <a-light type="point" position="-8 6 -10" intensity="0.4" color="#ffddbb"></a-light>
+        <a-light type="point" position="8 6 -10" intensity="0.4" color="#bbddff"></a-light>
+
+        <!-- Player Camera -->
+        <a-entity id="rig" position="0 0 0">
+            <a-camera position="0 1.6 0" wasd-controls="fly: true">
+                <a-cursor color="#003366" raycaster="objects: .clickable"></a-cursor>
+            </a-camera>
+            <a-entity laser-controls="hand: left" raycaster="objects: .clickable; far: 20"></a-entity>
+            <a-entity laser-controls="hand: right" raycaster="objects: .clickable; far: 20"></a-entity>
+        </a-entity>
+
+        <!-- Welcome Floating Hologram -->
+        <a-entity position="0 5 -10">
+            <a-text value="KALINGA LABORATORIES" position="0 0.8 0" align="center" color="#003366" scale="4 4 4" font="mozillavr"></a-text>
+            <a-text value="Heritage in Heart, Innovation in Sight." position="0 0 0" align="center" color="#0056b3" scale="1.5 1.5 1.5"></a-text>
+            <a-text value="Select a discipline to teleport." position="0 -0.6 0" align="center" color="#555" scale="1.2 1.2 1.2"></a-text>
+        </a-entity>
+
+        <!-- CHEMISTRY DOOR (Left) -->
+        <a-entity position="-5 0 -11" rotation="0 25 0">
+            <a-box position="0 2 0" width="3.2" height="4" depth="0.4" color="#222"></a-box>
+            <a-box id="door-chemistry" class="clickable" position="0 2 0.25" width="2.8" height="3.8" depth="0.1" color="#00ffff" hover-effect on-click="openDoor('chemistry')">
+                <a-text value="CHEMISTRY" position="0 0.8 0.06" align="center" color="#003366" scale="1.6 1.6 1.6" font="mozillavr"></a-text>
+                <a-text value="5 Active Modules" position="0 0.2 0.06" align="center" color="#003366" scale="0.9 0.9 0.9"></a-text>
+                <a-text value="Click to Enter ->" position="0 -1.2 0.06" align="center" color="#003366" scale="0.8 0.8 0.8"></a-text>
+            </a-box>
+            <!-- Glowing entrance behind the door -->
+            <a-plane position="0 2 0.1" width="2.8" height="3.8" color="#ffffff" material="emissive: #00ffff; emissiveIntensity: 1"></a-plane>
+        </a-entity>
+
+        <!-- PHYSICS DOOR (Center) -->
+        <a-entity position="0 0 -12" rotation="0 0 0">
+            <a-box position="0 2 0" width="3.2" height="4" depth="0.4" color="#222"></a-box>
+            <a-box id="door-physics" class="clickable" position="0 2 0.25" width="2.8" height="3.8" depth="0.1" color="#ffcc00" hover-effect on-click="openDoor('physics')">
+                <a-text value="PHYSICS" position="0 0.8 0.06" align="center" color="#003366" scale="1.6 1.6 1.6" font="mozillavr"></a-text>
+                <a-text value="5 Active Modules" position="0 0.2 0.06" align="center" color="#003366" scale="0.9 0.9 0.9"></a-text>
+                <a-text value="Click to Enter ->" position="0 -1.2 0.06" align="center" color="#003366" scale="0.8 0.8 0.8"></a-text>
+            </a-box>
+            <a-plane position="0 2 0.1" width="2.8" height="3.8" color="#ffffff" material="emissive: #ffcc00; emissiveIntensity: 1"></a-plane>
+        </a-entity>
+
+        <!-- BIOLOGY DOOR (Right) -->
+        <a-entity position="5 0 -11" rotation="0 -25 0">
+            <a-box position="0 2 0" width="3.2" height="4" depth="0.4" color="#222"></a-box>
+            <a-box id="door-biology" class="clickable" position="0 2 0.25" width="2.8" height="3.8" depth="0.1" color="#ff4444" hover-effect on-click="openDoor('biology')">
+                <a-text value="BIOLOGY" position="0 0.8 0.06" align="center" color="#ffffff" scale="1.6 1.6 1.6" font="mozillavr"></a-text>
+                <a-text value="5 Active Modules" position="0 0.2 0.06" align="center" color="#ffffff" scale="0.9 0.9 0.9"></a-text>
+                <a-text value="Click to Enter ->" position="0 -1.2 0.06" align="center" color="#ffffff" scale="0.8 0.8 0.8"></a-text>
+            </a-box>
+            <a-plane position="0 2 0.1" width="2.8" height="3.8" color="#ffffff" material="emissive: #ff4444; emissiveIntensity: 1"></a-plane>
+        </a-entity>
+
+    </a-scene>
+
+    <script>
+        let doorOpening = false;
+        window.openDoor = function(discipline) {
+            if (doorOpening) return; // Prevent multiple clicks
+            doorOpening = true;
+
+            const doorId = 'door-' + discipline;
+            const doorEl = document.getElementById(doorId);
+            
+            // Slide the door straight UP out of the frame into the ceiling
+            doorEl.setAttribute('animation', 'property: position; to: 0 6 0.25; dur: 1200; easing: easeInOutSine');
+            
+            // Wait for the animation to finish before navigating to the new lab page
+            setTimeout(() => {
+                window.location.href = discipline + '.html';
+            }, 1200);
+        };
+    </script>
+</body>
+</html>

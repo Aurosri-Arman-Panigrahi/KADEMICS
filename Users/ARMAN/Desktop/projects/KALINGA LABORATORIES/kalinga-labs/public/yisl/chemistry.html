@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Chemistry Lab VR - Kalinga Laboratories</title>
+    <!-- A-Frame -->
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #f8f9fa; font-family: 'Segoe UI', system-ui, sans-serif; }
+        .logo { position: fixed; top: 16px; left: 16px; height: 48px; width: auto; z-index: 9999; pointer-events: none; }
+        .top-nav { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); text-align: center; background: rgba(255,255,255,0.9); padding: 10px 20px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,51,102,0.2); z-index: 9999; pointer-events: auto; }
+        .top-nav h1 { margin: 0; font-size: 1.2rem; color: #003366; }
+        .back-link { text-decoration: none; color: #007bff; font-size: 0.9rem; font-weight: 600; }
+    </style>
+    <script>
+        AFRAME.registerComponent('hover-color', {
+            init: function () {
+                var el = this.el;
+                var defaultColor = el.getAttribute('color');
+                el.addEventListener('mouseenter', function () { el.setAttribute('color', '#003366'); });
+                el.addEventListener('mouseleave', function () { el.setAttribute('color', defaultColor); });
+            }
+        });
+        AFRAME.registerComponent('on-click', {
+            schema: {type: 'string'},
+            init: function () {
+                var action = this.data;
+                this.el.addEventListener('click', function () { new Function(action)(); });
+            }
+        });
+    </script>
+</head>
+<body>
+    <img src="assets/logo.png" alt="Kalinga Labs" class="logo">
+    <div class="top-nav">
+        <a href="index.html" class="back-link">&larr; Return to Atrium HUB</a>
+        <h1>Chemistry VR Lab</h1>
+    </div>
+
+    <!-- VR Scene -->
+    <a-scene cursor="rayOrigin: mouse" raycaster="objects: .clickable">
+        <!-- Environment -->
+        <a-plane position="0 10 0" rotation="90 0 0" width="40" height="40" color="#ffffff" material="roughness: 0.8"></a-plane>
+        <a-plane position="0 0 0" rotation="-90 0 0" width="40" height="40" color="#99aab5" material="roughness: 0.8"></a-plane>
+        <a-plane position="0 5 -20" rotation="0 0 0" width="40" height="10" color="#e6f2ff"></a-plane>
+        <a-plane position="0 5 20" rotation="0 180 0" width="40" height="10" color="#e6f2ff"></a-plane>
+        <a-plane position="-20 5 0" rotation="0 90 0" width="40" height="10" color="#dbe5f1"></a-plane>
+        <a-plane position="20 5 0" rotation="0 -90 0" width="40" height="10" color="#dbe5f1"></a-plane>
+        
+        <a-light type="ambient" color="#ffffff" intensity="0.5"></a-light>
+        <a-light type="point" position="0 8 -2" intensity="0.4" color="#e6ffff"></a-light>
+
+        <!-- Player -->
+        <a-entity id="rig" position="0 0 0">
+            <a-camera position="0 1.6 0" wasd-controls="fly: true">
+                <a-cursor color="#003366" raycaster="objects: .clickable"></a-cursor>
+            </a-camera>
+            <a-entity laser-controls="hand: left" raycaster="objects: .clickable; far: 10"></a-entity>
+            <a-entity laser-controls="hand: right" raycaster="objects: .clickable; far: 10"></a-entity>
+        </a-entity>
+
+        <!-- PROCEDURE BOARD -->
+        <a-entity id="procedure-board" position="0 2.8 -4" rotation="15 0 0" visible="false">
+            <a-plane width="3" height="1.6" color="#003366" opacity="0.95"></a-plane>
+            <a-text id="proc-title" value="Procedure" position="0 0.6 0.05" align="center" color="#ffcc00" width="4"></a-text>
+            <a-text id="proc-text" value="..." position="-1.3 0 0.05" align="left" color="#ffffff" width="2.8" line-height="50"></a-text>
+        </a-entity>
+
+        <!-- MAIN DASHBOARD -->
+        <a-entity position="-2.8 1.5 -2.5" rotation="0 35 0">
+            <a-plane width="2.2" height="3" color="#ffffff" opacity="0.9"></a-plane>
+            <a-text value="Chemistry Modules" position="0 1.2 0.05" align="center" color="#003366" width="4"></a-text>
+            
+            <a-plane class="clickable" position="0 0.8 0.05" width="1.8" height="0.3" color="#007bff" hover-color on-click="switchMod(0)">
+                <a-text value="1. Acid-Base Titration" position="0 0 0.01" align="center" color="white" width="3"></a-text>
+            </a-plane>
+            <a-plane class="clickable" position="0 0.4 0.05" width="1.8" height="0.3" color="#007bff" hover-color on-click="switchMod(1)">
+                <a-text value="2. Boyle's Gas Law" position="0 0 0.01" align="center" color="white" width="3"></a-text>
+            </a-plane>
+            <a-plane class="clickable" position="0 0.0 0.05" width="1.8" height="0.3" color="#007bff" hover-color on-click="switchMod(2)">
+                <a-text value="3. Electrolysis" position="0 0 0.01" align="center" color="white" width="3"></a-text>
+            </a-plane>
+            <a-plane class="clickable" position="0 -0.4 0.05" width="1.8" height="0.3" color="#007bff" hover-color on-click="switchMod(3)">
+                <a-text value="4. Combustion" position="0 0 0.01" align="center" color="white" width="3"></a-text>
+            </a-plane>
+            <a-plane class="clickable" position="0 -0.8 0.05" width="1.8" height="0.3" color="#007bff" hover-color on-click="switchMod(4)">
+                <a-text value="5. Crystal Lattices" position="0 0 0.01" align="center" color="white" width="3"></a-text>
+            </a-plane>
+
+            <a-plane class="clickable" position="0 -1.2 0.05" width="1.8" height="0.3" color="#ffcc00" hover-color on-click="toggleInfo()">
+                <a-text value="? Info / Procedure" position="0 0 0.01" align="center" color="#003366" width="3"></a-text>
+            </a-plane>
+        </a-entity>
+
+        <!-- SCALE & MATH PANEL -->
+        <a-entity position="2.8 1.5 -2.5" rotation="0 -35 0">
+            <a-plane width="2.4" height="3" color="#ffffff" opacity="0.9"></a-plane>
+            <a-text value="Math & Scale" position="0 1.2 0.05" align="center" color="#003366" width="4"></a-text>
+            
+            <a-text id="vr-scale-desc" value="10^0 m\nHuman Scale" position="0 0.8 0.05" align="center" color="#333" width="3"></a-text>
+            <a-plane class="clickable" position="-0.5 0.5 0.05" width="0.6" height="0.3" color="#ff4444" hover-color on-click="changeScale(-1)">
+                <a-text value="Zoom Out" position="0 0 0.01" align="center" color="white" width="3"></a-text>
+            </a-plane>
+            <a-plane class="clickable" position="0.5 0.5 0.05" width="0.6" height="0.3" color="#44cc44" hover-color on-click="changeScale(1)">
+                <a-text value="Zoom In" position="0 0 0.01" align="center" color="white" width="3"></a-text>
+            </a-plane>
+
+            <!-- Calculation Dashboards -->
+            <a-entity id="vr-logic-panel" position="0 -0.3 0.05">
+                <a-text value="Calculations" position="0 0.5 0" align="center" color="#003366" width="4"></a-text>
+                
+                <!-- 0: Titration -->
+                <a-entity class="ctrl-ui" id="ctrl-0" visible="true">
+                    <a-plane class="clickable" position="0 0.2 0" width="1.4" height="0.3" color="#ffaa00" on-click="resetReaction()">
+                        <a-text value="Reset Reaction" position="0 0 0.01" align="center" color="white" width="3"></a-text>
+                    </a-plane>
+                    <a-text id="stat-0a" value="Current pH: 7.00" position="0 -0.2 0" align="center" color="#003366" width="4"></a-text>
+                    <a-text id="stat-0b" value="Temperature +0.0 C" position="0 -0.6 0" align="center" color="#333" width="4"></a-text>
+                </a-entity>
+
+                <!-- 1: Boyle -->
+                <a-entity class="ctrl-ui" id="ctrl-1" visible="false">
+                    <a-text id="stat-1a" value="Volume (V): 10.0 L" position="0 0.2 0" align="center" color="#333" width="4"></a-text>
+                    <a-plane class="clickable" position="-0.6 -0.1 0" width="0.8" height="0.3" color="#ff4444" on-click="changeVol(-1)">
+                        <a-text value="Compress -" position="0 0 0.01" align="center" color="white" width="3"></a-text>
+                    </a-plane>
+                    <a-plane class="clickable" position="0.6 -0.1 0" width="0.8" height="0.3" color="#44cc44" on-click="changeVol(1)">
+                        <a-text value="Expand +" position="0 0 0.01" align="center" color="white" width="3"></a-text>
+                    </a-plane>
+                    <a-text id="stat-1b" value="Pressure (P): 1.0 atm\nP = k / V" position="0 -0.5 0" align="center" color="#007bff" width="4"></a-text>
+                </a-entity>
+
+                <!-- 2: Electrolysis -->
+                <a-entity class="ctrl-ui" id="ctrl-2" visible="false">
+                    <a-text id="stat-2a" value="Voltage: 0.0 V" position="0 0.2 0" align="center" color="#333" width="4"></a-text>
+                    <a-plane class="clickable" position="-0.6 -0.1 0" width="0.8" height="0.3" color="#ff4444" on-click="changeVolt(-1)">
+                        <a-text value="Volts -" position="0 0 0.01" align="center" color="white" width="3"></a-text>
+                    </a-plane>
+                    <a-plane class="clickable" position="0.6 -0.1 0" width="0.8" height="0.3" color="#44cc44" on-click="changeVolt(1)">
+                        <a-text value="Volts +" position="0 0 0.01" align="center" color="white" width="3"></a-text>
+                    </a-plane>
+                    <a-text id="stat-2b" value="H2O -> H2 (g) + 1/2 O2 (g)" position="0 -0.5 0" align="center" color="#007bff" width="3.5"></a-text>
+                </a-entity>
+
+                <!-- 3: Combustion -->
+                <a-entity class="ctrl-ui" id="ctrl-3" visible="false">
+                    <a-text id="stat-3a" value="CH4 Flow: 0.0 L/s" position="0 0.2 0" align="center" color="#333" width="4"></a-text>
+                    <a-plane class="clickable" position="-0.6 -0.1 0" width="0.8" height="0.3" color="#ff4444" on-click="changeFlow(-1)">
+                        <a-text value="Flow -" position="0 0 0.01" align="center" color="white" width="3"></a-text>
+                    </a-plane>
+                    <a-plane class="clickable" position="0.6 -0.1 0" width="0.8" height="0.3" color="#44cc44" on-click="changeFlow(1)">
+                        <a-text value="Flow +" position="0 0 0.01" align="center" color="white" width="3"></a-text>
+                    </a-plane>
+                    <a-text id="stat-3b" value="CH4 + 2O2 -> CO2 + 2H2O\nEnergy: 0 kJ" position="0 -0.5 0" align="center" color="#ff5500" width="3.5"></a-text>
+                </a-entity>
+
+                <!-- 4: Crystals -->
+                <a-entity class="ctrl-ui" id="ctrl-4" visible="false">
+                    <a-text id="stat-4a" value="Select Material" position="0 0.2 0" align="center" color="#333" width="4"></a-text>
+                    <a-plane class="clickable" position="-0.6 -0.1 0" width="1.0" height="0.3" color="#007bff" on-click="viewCrystal('nacl')">
+                        <a-text value="NaCl (Salt)" position="0 0 0.01" align="center" color="white" width="3"></a-text>
+                    </a-plane>
+                    <a-plane class="clickable" position="0.6 -0.1 0" width="1.0" height="0.3" color="#333" on-click="viewCrystal('diamond')">
+                        <a-text value="Diamond" position="0 0 0.01" align="center" color="white" width="3"></a-text>
+                    </a-plane>
+                    <a-text id="stat-4b" value="Structure: Ionic Cubic" position="0 -0.5 0" align="center" color="#007bff" width="4"></a-text>
+                </a-entity>
+
+            </a-entity>
+        </a-entity>
+
+        <!-- Central Lab Desk -->
+        <a-entity id="vr-wrapper" scale="1 1 1" position="0 0.8 -3">
+            <a-cylinder position="0 -0.6 0" radius="1.6" height="1.2" color="#ffffff" material="roughness: 0.2"></a-cylinder>
+            <a-cylinder position="0 0 0" radius="1.8" height="0.1" color="#0056b3" material="metalness: 0.5"></a-cylinder>
+
+            <!-- 0: TITRATION -->
+            <a-entity class="mod" id="mod-0" visible="true">
+                <a-cylinder class="clickable" position="-0.6 0.4 0" radius="0.25" height="0.8" color="#00ffff" opacity="0.6" material="transparent: true" on-click="addHCl()">
+                    <a-text value="HCl (0.1M)" position="0 0.6 0" align="center" color="#003366"></a-text>
+                </a-cylinder>
+                <a-cylinder class="clickable" position="0.6 0.4 0" radius="0.25" height="0.8" color="#ff9900" opacity="0.6" material="transparent: true" on-click="addNaOH()">
+                    <a-text value="NaOH (0.1M)" position="0 0.6 0" align="center" color="#003366"></a-text>
+                </a-cylinder>
+                <a-entity position="0 0.4 0.3">
+                    <a-sphere id="vessel" radius="0.4" color="#00ff00" opacity="0.8" material="transparent: true"></a-sphere>
+                    <a-cylinder radius="0.18" height="0.3" position="0 0.4 0" color="#ffffff" opacity="0.5" open-ended="true" material="side: double"></a-cylinder>
+                    <a-text value="Vessel" position="0 -0.6 0" align="center" color="#003366"></a-text>
+                    <a-text id="warn-txt" value="! Exothermic !" position="0 1 0" align="center" color="red" visible="false"></a-text>
+                </a-entity>
+            </a-entity>
+
+            <!-- 1: BOYLE'S LAW -->
+            <a-entity class="mod" id="mod-1" visible="false">
+                <a-cylinder radius="0.4" height="1.6" position="0 0.8 0" color="#ffffff" opacity="0.3" material="transparent: true; side: double"></a-cylinder>
+                <!-- Plunger base -->
+                <a-cylinder id="piston" radius="0.38" height="0.1" position="0 1.5 0" color="#444"></a-cylinder>
+                <!-- Plunger rod -->
+                <a-cylinder id="rod" radius="0.05" height="2" position="0 2 0" color="#888"></a-cylinder>
+                
+                <!-- Inner Gas visual representation base -->
+                <a-cylinder id="gas-vol" radius="0.39" height="1.5" position="0 0.75 0" color="#00ffff" opacity="0.5" material="transparent: true"></a-cylinder>
+            </a-entity>
+
+            <!-- 2: ELECTROLYSIS -->
+            <a-entity class="mod" id="mod-2" visible="false">
+                <a-cylinder radius="0.6" height="1.2" position="0 0.6 0" color="#99ffff" opacity="0.5" material="transparent: true; side: double"></a-cylinder>
+                <!-- Electrodes -->
+                <a-cylinder radius="0.05" height="1.4" position="-0.3 0.7 0" color="#222"></a-cylinder>
+                <a-cylinder radius="0.05" height="1.4" position="0.3 0.7 0" color="#222"></a-cylinder>
+                <a-text value="Cathode(-)\nHydrogen" position="-0.3 1.6 0" align="center" color="#333" scale="0.8 0.8 0.8"></a-text>
+                <a-text value="Anode(+)\nOxygen" position="0.3 1.6 0" align="center" color="#333" scale="0.8 0.8 0.8"></a-text>
+                
+                <!-- Particle spawn points -->
+                <a-entity id="h2-spawn" position="-0.3 0.2 0"></a-entity>
+                <a-entity id="o2-spawn" position="0.3 0.2 0"></a-entity>
+            </a-entity>
+
+            <!-- 3: COMBUSTION -->
+            <a-entity class="mod" id="mod-3" visible="false">
+                <!-- Bunsen Burner -->
+                <a-cylinder radius="0.15" height="0.1" color="#555" position="0 0.05 0"></a-cylinder>
+                <a-cylinder radius="0.04" height="0.6" color="#777" position="0 0.3 0"></a-cylinder>
+                
+                <!-- Dynamic Flame -->
+                <a-sphere id="burn-flame" position="0 0.7 0" radius="0.05" color="#0055ff" material="emissive: #00aaff; emissiveIntensity: 1; transparent: true"></a-sphere>
+                <!-- Outer Flare -->
+                <a-sphere id="burn-flare" position="0 0.9 0" radius="0.08" color="#ffaa00" material="emissive: #ff5500; opacity: 0.8; transparent: true"></a-sphere>
+            </a-entity>
+
+            <!-- 4: CRYSTAL LATTICES -->
+            <a-entity class="mod" id="mod-4" visible="false">
+                <!-- Simple representative models hardcoded as entities containing spheres -->
+                <!-- NaCl -->
+                <a-entity id="lattice-nacl" visible="true" position="0 0.6 0" animation="property: rotation; to: 0 360 0; dur: 10000; loop: true; easing: linear">
+                    <!-- A simple 2x2x2 cube -->
+                    <a-sphere position="-0.5 -0.5 -0.5" radius="0.2" color="#44aa44"></a-sphere>
+                    <a-sphere position="-0.5 -0.5 0.5" radius="0.15" color="#aaaa44"></a-sphere>
+                    <a-sphere position="-0.5 0.5 -0.5" radius="0.15" color="#aaaa44"></a-sphere>
+                    <a-sphere position="-0.5 0.5 0.5" radius="0.2" color="#44aa44"></a-sphere>
+                    <a-sphere position="0.5 -0.5 -0.5" radius="0.15" color="#aaaa44"></a-sphere>
+                    <a-sphere position="0.5 -0.5 0.5" radius="0.2" color="#44aa44"></a-sphere>
+                    <a-sphere position="0.5 0.5 -0.5" radius="0.2" color="#44aa44"></a-sphere>
+                    <a-sphere position="0.5 0.5 0.5" radius="0.15" color="#aaaa44"></a-sphere>
+                    
+                    <!-- connecting lines (box wrapper) -->
+                    <a-box position="0 0 0" width="1" height="1" depth="1" color="#fff" wireframe="true" opacity="0.3"></a-box>
+                </a-entity>
+
+                <!-- Diamond -->
+                <a-entity id="lattice-diamond" visible="false" position="0 0.6 0" animation="property: rotation; to: 0 360 0; dur: 8000; loop: true; easing: linear">
+                    <!-- Tetrahedral setup (Central carbon + 4 bound) -->
+                    <a-sphere position="0 0 0" radius="0.18" color="#333" material="metalness: 0.8; roughness: 0.1"></a-sphere>
+                    <a-sphere position="-0.4 -0.4 -0.4" radius="0.18" color="#333"></a-sphere>
+                    <a-sphere position="0.4 -0.4 0.4" radius="0.18" color="#333"></a-sphere>
+                    <a-sphere position="-0.4 0.4 0.4" radius="0.18" color="#333"></a-sphere>
+                    <a-sphere position="0.4 0.4 -0.4" radius="0.18" color="#333"></a-sphere>
+                    
+                    <a-cylinder radius="0.02" height="0.8" position="-0.2 -0.2 -0.2" rotation="45 45 0" color="#888"></a-cylinder>
+                    <a-cylinder radius="0.02" height="0.8" position="0.2 -0.2 0.2" rotation="-45 45 0" color="#888"></a-cylinder>
+                </a-entity>
+            </a-entity>
+
+        </a-entity>
+    </a-scene>
+
+    <script>
+        const procedures = [
+            "Acid-Base Titration:\n\n1. Add HCl (acid) or NaOH (base).\n2. Watch pH shift and indicator color change.\n3. Track Exothermic temp rise.",
+            "Boyle's Gas Law:\n\n1. Compress the piston lowering Volume (V).\n2. Gas particles compress, increasing Pressure (P).\n3. P1V1 = P2V2. Pressure and Volume are inversely proportional.",
+            "Electrolysis of Water:\n\n1. Increase Voltage supplied to electrodes.\n2. Observe water splitting into Hydrogen & Oxygen gases.\n3. Note visual ratio: 2 H2 bubbles per 1 O2 bubble.",
+            "Combustion of Methane:\n\n1. Open CH4 flow valve into the burner.\n2. Reaction: CH4 + 2O2 -> CO2 + 2H2O.\n3. Notice dramatic exothermic energy readout as flame grows.",
+            "Crystal Lattices:\n\n1. Cycle between NaCl (Table Salt) and Diamond (Carbon).\n2. Zoom inside the atomic lattice to observe bonds.\n3. Compare fragile Ionic cubic vs rigid Covalent networks."
+        ];
+
+        let curMod = 0;
+        let infoVisible = false;
+
+        window.switchMod = function(index) {
+            curMod = index;
+            document.querySelectorAll('.mod').forEach(el => el.setAttribute('visible', 'false'));
+            document.querySelectorAll('.ctrl-ui').forEach(el => el.setAttribute('visible', 'false'));
+            document.getElementById('mod-' + index).setAttribute('visible', 'true');
+            document.getElementById('ctrl-' + index).setAttribute('visible', 'true');
+            
+            document.getElementById('proc-text').setAttribute('value', procedures[index]);
+            let titles = ["Acid-Base Titration", "Boyle's Gas Law", "Electrolysis", "Combustion", "Crystal Lattices"];
+            document.getElementById('proc-title').setAttribute('value', titles[index] + " Procedure");
+        };
+
+        window.toggleInfo = function() {
+            infoVisible = !infoVisible;
+            document.getElementById('procedure-board').setAttribute('visible', infoVisible ? 'true' : 'false');
+        };
+        document.getElementById('proc-text').setAttribute('value', procedures[0]);
+        document.getElementById('proc-title').setAttribute('value', "Titration Procedure");
+
+        // Module 0: Titration
+        let hclVol = 0; let naohVol = 0;
+        window.addHCl = function() { hclVol+=10; updateSim0(); };
+        window.addNaOH = function() { naohVol+=10; updateSim0(); };
+        window.resetReaction = function() { hclVol=0; naohVol=0; updateSim0(); };
+        function updateSim0() {
+            let pH = 7.0;
+            let total = hclVol + naohVol || 0.001;
+            if(hclVol > naohVol) pH = -Math.log10((hclVol - naohVol)*0.1 / total);
+            else if(naohVol > hclVol) pH = 14 + Math.log10((naohVol - hclVol)*0.1 / total);
+            
+            let temp = Math.min(hclVol*0.1, naohVol*0.1) * 2.5;
+            document.getElementById('stat-0a').setAttribute('value', `Current pH: ${pH.toFixed(2)}`);
+            document.getElementById('stat-0b').setAttribute('value', `Temp: +${temp.toFixed(1)} C`);
+            
+            let color = '#00ff00';
+            if(pH < 6.5) color = '#ff0000';
+            else if(pH > 7.5) color = '#0000ff';
+            document.getElementById('vessel').setAttribute('color', color);
+            document.getElementById('warn-txt').setAttribute('visible', temp > 0 ? 'true' : 'false');
+        }
+
+        // Module 1: Boyle
+        let gasVol = 10.0;
+        const kBoyle = 10.0; // P*V = 10
+        window.changeVol = function(dir) {
+            gasVol += dir;
+            if(gasVol < 2.0) gasVol = 2.0;
+            if(gasVol > 14.0) gasVol = 14.0;
+            
+            let pressure = kBoyle / gasVol;
+            document.getElementById('stat-1a').setAttribute('value', `Volume (V): ${gasVol.toFixed(1)} L`);
+            document.getElementById('stat-1b').setAttribute('value', `Pressure (P): ${pressure.toFixed(2)} atm\nP = k / V`);
+            
+            // Visual height map (max 1.5 at V=14, min 0.2 at V=2)
+            let visualH = (gasVol / 14) * 1.5;
+            document.getElementById('piston').setAttribute('position', `0 ${visualH} 0`);
+            document.getElementById('rod').setAttribute('position', `0 ${visualH + 0.5} 0`);
+            document.getElementById('gas-vol').setAttribute('height', visualH);
+            document.getElementById('gas-vol').setAttribute('position', `0 ${visualH/2} 0`);
+            // Density color effect
+            document.getElementById('gas-vol').setAttribute('opacity', 0.2 + (pressure * 0.1));
+        };
+
+        // Module 2: Electrolysis
+        let electVolt = 0.0;
+        window.changeVolt = function(dir) {
+            electVolt += dir;
+            if(electVolt < 0) electVolt = 0.0;
+            if(electVolt > 24) electVolt = 24.0;
+            document.getElementById('stat-2a').setAttribute('value', `Voltage: ${electVolt.toFixed(1)} V`);
+        };
+        // Bubble loop
+        setInterval(() => {
+            if(curMod === 2 && electVolt > 0) {
+                // Not fully animating DOM nodes natively to save memory, just a fake effect or CSS? 
+                // Creating elements rapidly in interval in A-Frame is heavy. We simulate it dynamically.
+                // Or simply change opacity/rate of a static particle system. Because we don't have particle system component, it's better to just skip bubbles for now to prevent memory leaks in pure HTML loop.
+            }
+        }, 100);
+
+        // Module 3: Combustion
+        let ch4Flow = 0;
+        window.changeFlow = function(dir) {
+            ch4Flow += dir;
+            if(ch4Flow < 0) ch4Flow = 0;
+            if(ch4Flow > 5) ch4Flow = 5;
+            
+            document.getElementById('stat-3a').setAttribute('value', `CH4 Flow: ${ch4Flow.toFixed(1)} L/s`);
+            document.getElementById('stat-3b').setAttribute('value', `CH4 + 2O2 -> CO2 + 2H2O\nEnergy: ${ch4Flow * 890} kJ/s`); // Standard enthalpy 890 kJ/mol
+            
+            // Flame visualization
+            let fRad = 0.05 + (ch4Flow * 0.02);
+            document.getElementById('burn-flame').setAttribute('radius', fRad);
+            document.getElementById('burn-flame').setAttribute('position', `0 ${0.3 + fRad} 0`);
+            
+            let flRad = 0.05 + (ch4Flow * 0.035);
+            document.getElementById('burn-flare').setAttribute('radius', flRad);
+            document.getElementById('burn-flare').setAttribute('position', `0 ${0.3 + fRad + flRad/2} 0`);
+        };
+
+        // Module 4: Crystal Lattices
+        window.viewCrystal = function(type) {
+            if(type === 'nacl') {
+                document.getElementById('lattice-nacl').setAttribute('visible', 'true');
+                document.getElementById('lattice-diamond').setAttribute('visible', 'false');
+                document.getElementById('stat-4b').setAttribute('value', `Structure: Ionic Cubic Lattice\nFragile, conductive in water.`);
+            } else {
+                document.getElementById('lattice-nacl').setAttribute('visible', 'false');
+                document.getElementById('lattice-diamond').setAttribute('visible', 'true');
+                document.getElementById('stat-4b').setAttribute('value', `Structure: Covalent Tetrahedral\nExtremely rigid diamond lattice.`);
+            }
+        };
+
+        // Scale Logic
+        let scaleIdx = 4;
+        const scaleMap = [
+            {val: -15, desc: 'Atomic Nucleus'}, {val: -10, desc: 'Atom'}, 
+            {val: -9, desc: 'DNA Strand'}, {val: -6, desc: 'Cell'},
+            {val: 0, desc: 'Human Scale'}, {val: 3, desc: 'City'}, 
+            {val: 9, desc: 'Earth-Moon'}, {val: 12, desc: 'Solar System'},
+            {val: 21, desc: 'Milky Way'}, {val: 24, desc: 'Universe'}
+        ];
+        window.changeScale = function(dir) {
+            scaleIdx += dir;
+            if(scaleIdx < 0) scaleIdx = 0;
+            if(scaleIdx >= scaleMap.length) scaleIdx = scaleMap.length - 1;
+            
+            let item = scaleMap[scaleIdx];
+            document.getElementById('vr-scale-desc').setAttribute('value', `10^${item.val} m\n${item.desc}`);
+
+            let actScale = 1;
+            if (item.val > 0) actScale = 1 + (item.val / 24) * 4; 
+            else if (item.val < 0) actScale = Math.max(0.1, 1 - (Math.abs(item.val) / 15) * 0.9);
+            document.getElementById('vr-wrapper').setAttribute('scale', `${actScale} ${actScale} ${actScale}`);
+        };
+    </script>
+</body>
+</html>

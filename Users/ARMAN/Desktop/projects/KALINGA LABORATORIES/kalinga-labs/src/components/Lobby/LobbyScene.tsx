@@ -166,46 +166,83 @@ function Scene({ cameraTarget, navCallback }: SceneProps) {
 /* ─── Lobby hint overlay ─── */
 function LobbyOverlay() {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 1.5, duration: 0.8 }}
-      style={{
-        position: 'absolute',
-        bottom: '8%',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        textAlign: 'center',
-        zIndex: 10,
-        pointerEvents: 'none',
-      }}
-    >
-      <p style={{
-        fontFamily: 'Orbitron, sans-serif',
-        fontSize: '0.65rem',
-        color: '#4a7a8a',
-        letterSpacing: '0.25em',
-        animation: 'glowPulse 3s ease-in-out infinite',
-      }}>
-        ✦ CLICK A PORTAL TO ENTER THE LAB ✦
-      </p>
-      <p style={{
-        fontFamily: 'Share Tech Mono, monospace',
-        fontSize: '0.55rem',
-        color: '#2a4a5a',
-        letterSpacing: '0.1em',
-        marginTop: 4,
-      }}>
-        DRAG TO ORBIT · SCROLL TO ZOOM · PRESS H FOR HELP
-      </p>
-    </motion.div>
+    <>
+      {/* YISL VR Hub button — top right */}
+      <motion.a
+        href="/yisl/index.html"
+        target="_blank"
+        rel="noreferrer"
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: 1.8, duration: 0.6 }}
+        whileHover={{ scale: 1.06, boxShadow: '0 0 28px rgba(0,245,196,0.5)' }}
+        whileTap={{ scale: 0.96 }}
+        style={{
+          position: 'absolute',
+          top: 18,
+          right: 18,
+          zIndex: 20,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+          padding: '8px 18px',
+          background: 'rgba(0,245,196,0.08)',
+          border: '1px solid rgba(0,245,196,0.4)',
+          borderRadius: 8,
+          color: '#00f5c4',
+          fontFamily: 'Orbitron, sans-serif',
+          fontSize: '0.6rem',
+          letterSpacing: '0.15em',
+          textDecoration: 'none',
+          cursor: 'pointer',
+          backdropFilter: 'blur(8px)',
+        }}
+      >
+        🥽 YISL VR HUB
+      </motion.a>
+
+      {/* Bottom hint text */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 1.5, duration: 0.8 }}
+        style={{
+          position: 'absolute',
+          bottom: '8%',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          textAlign: 'center',
+          zIndex: 10,
+          pointerEvents: 'none',
+        }}
+      >
+        <p style={{
+          fontFamily: 'Orbitron, sans-serif',
+          fontSize: '0.65rem',
+          color: '#4a7a8a',
+          letterSpacing: '0.25em',
+          animation: 'glowPulse 3s ease-in-out infinite',
+        }}>
+          ✦ CLICK A PORTAL TO ENTER THE LAB ✦
+        </p>
+        <p style={{
+          fontFamily: 'Share Tech Mono, monospace',
+          fontSize: '0.55rem',
+          color: '#2a4a5a',
+          letterSpacing: '0.1em',
+          marginTop: 4,
+        }}>
+          DRAG TO ORBIT · SCROLL TO ZOOM · PRESS H FOR HELP
+        </p>
+      </motion.div>
+    </>
   );
 }
 
 /**
  * Main 3D Lobby Scene.
  * Full-screen R3F canvas with 3 interactive portals, stars, and Kalinga rotunda rings.
- * Fixes: reduced fog density → stars visible; frameloop="always" to prevent context loss.
+ * Includes sci-fi logo title overlay and YISL VR Hub button.
  */
 export const LobbyScene: React.FC = () => {
   const cameraTarget = useRef<{ x: number; y: number; z: number } | null>(null);
@@ -238,7 +275,88 @@ export const LobbyScene: React.FC = () => {
           <Scene cameraTarget={cameraTarget} navCallback={navCallback} />
         </Suspense>
       </Canvas>
+
+      {/* Sci-fi Logo + Title — centered top */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 1, ease: 'easeOut' }}
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 15,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          paddingTop: 20,
+          gap: 8,
+          pointerEvents: 'none',
+        }}
+      >
+        {/* Logo image */}
+        <motion.img
+          src="/logo.png"
+          alt="Kalinga Labs"
+          style={{
+            width: 64,
+            height: 64,
+            objectFit: 'contain',
+            filter: 'drop-shadow(0 0 18px rgba(0,245,196,0.8)) drop-shadow(0 0 40px rgba(26,240,255,0.4))',
+          }}
+          animate={{
+            filter: [
+              'drop-shadow(0 0 14px rgba(0,245,196,0.6)) drop-shadow(0 0 30px rgba(26,240,255,0.2))',
+              'drop-shadow(0 0 26px rgba(0,245,196,1.0)) drop-shadow(0 0 60px rgba(26,240,255,0.5))',
+              'drop-shadow(0 0 14px rgba(0,245,196,0.6)) drop-shadow(0 0 30px rgba(26,240,255,0.2))',
+            ],
+          }}
+          transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+          onError={(e) => ((e.target as HTMLImageElement).style.display = 'none')}
+        />
+
+        {/* Lab name in Orbitron */}
+        <div style={{ textAlign: 'center' }}>
+          <motion.h1
+            style={{
+              fontFamily: 'Orbitron, sans-serif',
+              fontSize: 'clamp(1rem, 2.5vw, 1.6rem)',
+              fontWeight: 900,
+              letterSpacing: '0.35em',
+              margin: 0,
+              background: 'linear-gradient(135deg, #00f5c4, #1af0ff, #b44fff)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              textShadow: 'none',
+            }}
+            animate={{
+              backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
+            }}
+            transition={{ duration: 5, repeat: Infinity, ease: 'linear' }}
+          >
+            KALINGA LABORATORIES
+          </motion.h1>
+          <motion.p
+            style={{
+              fontFamily: 'Share Tech Mono, monospace',
+              fontSize: '0.5rem',
+              color: '#4a7a8a',
+              letterSpacing: '0.3em',
+              margin: '4px 0 0',
+            }}
+            animate={{ opacity: [0.5, 1, 0.5] }}
+            transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+          >
+            HERITAGE IN HEART · INNOVATION IN SIGHT
+          </motion.p>
+        </div>
+      </motion.div>
+
       <LobbyOverlay />
     </div>
   );
 };
+
+
+

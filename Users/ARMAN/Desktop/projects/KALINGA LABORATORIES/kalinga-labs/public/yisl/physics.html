@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Physics Lab VR - Kalinga Laboratories</title>
+    <!-- A-Frame -->
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #f8f9fa; font-family: 'Segoe UI', system-ui, sans-serif; }
+        .logo { position: fixed; top: 16px; left: 16px; height: 48px; width: auto; z-index: 9999; pointer-events: none; }
+        .top-nav { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); text-align: center; background: rgba(255,255,255,0.9); padding: 10px 20px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,51,102,0.2); z-index: 9999; pointer-events: auto; }
+        .top-nav h1 { margin: 0; font-size: 1.2rem; color: #003366; }
+        .back-link { text-decoration: none; color: #007bff; font-size: 0.9rem; font-weight: 600; }
+    </style>
+    <script>
+        AFRAME.registerComponent('hover-color', {
+            init: function () {
+                var el = this.el;
+                var defaultColor = el.getAttribute('color');
+                el.addEventListener('mouseenter', function () { el.setAttribute('color', '#003366'); });
+                el.addEventListener('mouseleave', function () { el.setAttribute('color', defaultColor); });
+            }
+        });
+        AFRAME.registerComponent('on-click', {
+            schema: {type: 'string'},
+            init: function () {
+                var action = this.data;
+                this.el.addEventListener('click', function () { new Function(action)(); });
+            }
+        });
+    </script>
+</head>
+<body>
+    <img src="assets/logo.png" alt="Kalinga Labs" class="logo">
+    <div class="top-nav">
+        <a href="index.html" class="back-link">&larr; Return to Atrium HUB</a>
+        <h1>Physics VR Lab</h1>
+    </div>
+
+    <a-scene cursor="rayOrigin: mouse" raycaster="objects: .clickable">
+        
+        <!-- Environment -->
+        <a-plane position="0 10 0" rotation="90 0 0" width="40" height="40" color="#ffffff" material="roughness: 0.8"></a-plane>
+        <a-plane position="0 0 0" rotation="-90 0 0" width="40" height="40" color="#99aab5" material="roughness: 0.8"></a-plane>
+        <a-plane position="0 5 -20" rotation="0 0 0" width="40" height="10" color="#e6f2ff"></a-plane>
+        <a-plane position="0 5 20" rotation="0 180 0" width="40" height="10" color="#e6f2ff"></a-plane>
+        <a-plane position="-20 5 0" rotation="0 90 0" width="40" height="10" color="#dbe5f1"></a-plane>
+        <a-plane position="20 5 0" rotation="0 -90 0" width="40" height="10" color="#dbe5f1"></a-plane>
+        
+        <a-light type="ambient" color="#ffffff" intensity="0.5"></a-light>
+        <a-light type="point" position="0 8 -2" intensity="0.4" color="#e6ffff"></a-light>
+
+        <!-- Player -->
+        <a-entity id="rig" position="0 0 0">
+            <a-camera position="0 1.6 0" wasd-controls="fly: true">
+                <a-cursor color="#003366" raycaster="objects: .clickable"></a-cursor>
+            </a-camera>
+            <a-entity laser-controls="hand: left" raycaster="objects: .clickable; far: 10"></a-entity>
+            <a-entity laser-controls="hand: right" raycaster="objects: .clickable; far: 10"></a-entity>
+        </a-entity>
+
+        <!-- PROCEDURE BOARD -->
+        <a-entity id="procedure-board" position="0 2.8 -4" rotation="15 0 0" visible="false">
+            <a-plane width="3" height="1.6" color="#003366" opacity="0.95"></a-plane>
+            <a-text id="proc-title" value="Procedure" position="0 0.6 0.05" align="center" color="#ffcc00" width="4"></a-text>
+            <a-text id="proc-text" value="..." position="-1.3 0 0.05" align="left" color="#ffffff" width="2.8" line-height="50"></a-text>
+        </a-entity>
+
+        <!-- MAIN DASHBOARD (Module Selector) -->
+        <a-entity position="-2.8 1.5 -2.5" rotation="0 35 0">
+            <a-plane width="2.2" height="3" color="#ffffff" opacity="0.9"></a-plane>
+            <a-text value="Physics Modules" position="0 1.2 0.05" align="center" color="#003366" width="4"></a-text>
+            
+            <a-plane class="clickable" position="0 0.8 0.05" width="1.8" height="0.3" color="#007bff" hover-color on-click="switchMod(0)">
+                <a-text value="1. Solar System" position="0 0 0.01" align="center" color="white" width="3"></a-text>
+            </a-plane>
+            <a-plane class="clickable" position="0 0.4 0.05" width="1.8" height="0.3" color="#007bff" hover-color on-click="switchMod(1)">
+                <a-text value="2. Electromagnet" position="0 0 0.01" align="center" color="white" width="3"></a-text>
+            </a-plane>
+            <a-plane class="clickable" position="0 0.0 0.05" width="1.8" height="0.3" color="#007bff" hover-color on-click="switchMod(2)">
+                <a-text value="3. Pendulum" position="0 0 0.01" align="center" color="white" width="3"></a-text>
+            </a-plane>
+            <a-plane class="clickable" position="0 -0.4 0.05" width="1.8" height="0.3" color="#007bff" hover-color on-click="switchMod(3)">
+                <a-text value="4. Hooke's Law" position="0 0 0.01" align="center" color="white" width="3"></a-text>
+            </a-plane>
+            <a-plane class="clickable" position="0 -0.8 0.05" width="1.8" height="0.3" color="#007bff" hover-color on-click="switchMod(4)">
+                <a-text value="5. Prism Optics" position="0 0 0.01" align="center" color="white" width="3"></a-text>
+            </a-plane>
+
+            <a-plane class="clickable" position="0 -1.2 0.05" width="1.8" height="0.3" color="#ffcc00" hover-color on-click="toggleInfo()">
+                <a-text value="? Info / Procedure" position="0 0 0.01" align="center" color="#003366" width="3"></a-text>
+            </a-plane>
+        </a-entity>
+
+        <!-- SCALE & CALCULATIONS PANEL -->
+        <a-entity position="2.8 1.5 -2.5" rotation="0 -35 0">
+            <a-plane width="2.4" height="3" color="#ffffff" opacity="0.9"></a-plane>
+            <a-text value="Math & Scale" position="0 1.2 0.05" align="center" color="#003366" width="4"></a-text>
+            
+            <a-text id="vr-scale-desc" value="10^0 m\nHuman Scale" position="0 0.8 0.05" align="center" color="#333" width="3"></a-text>
+            <a-plane class="clickable" position="-0.5 0.5 0.05" width="0.6" height="0.3" color="#ff4444" hover-color on-click="changeScale(-1)">
+                <a-text value="Zoom Out" position="0 0 0.01" align="center" color="white" width="3"></a-text>
+            </a-plane>
+            <a-plane class="clickable" position="0.5 0.5 0.05" width="0.6" height="0.3" color="#44cc44" hover-color on-click="changeScale(1)">
+                <a-text value="Zoom In" position="0 0 0.01" align="center" color="white" width="3"></a-text>
+            </a-plane>
+
+            <a-entity id="vr-logic-panel" position="0 -0.3 0.05">
+                <a-text value="Calculations" position="0 0.5 0" align="center" color="#003366" width="4"></a-text>
+                
+                <!-- Solar -->
+                <a-entity class="ctrl-ui" id="ctrl-0" visible="true">
+                    <a-plane class="clickable" position="0 0 0" width="1.4" height="0.4" color="#ffaa00" on-click="toggleOrbits()">
+                        <a-text id="btn-orbit" value="Pause Orbits" position="0 0 0.01" align="center" color="white" width="3"></a-text>
+                    </a-plane>
+                    <a-text id="stat-0" value="Select planet" position="0 -0.5 0" align="center" color="#333" width="4"></a-text>
+                </a-entity>
+
+                <!-- Electromagnet -->
+                <a-entity class="ctrl-ui" id="ctrl-1" visible="false">
+                    <a-text id="stat-1a" value="Current: 0.0 A" position="0 0.2 0" align="center" color="#333" width="4"></a-text>
+                    <a-plane class="clickable" position="-0.6 -0.1 0" width="0.8" height="0.3" color="#ff4444" on-click="changeAmp(-1)">
+                        <a-text value="Volts -" position="0 0 0.01" align="center" color="white" width="3"></a-text>
+                    </a-plane>
+                    <a-plane class="clickable" position="0.6 -0.1 0" width="0.8" height="0.3" color="#44cc44" on-click="changeAmp(1)">
+                        <a-text value="Volts +" position="0 0 0.01" align="center" color="white" width="3"></a-text>
+                    </a-plane>
+                    <a-text id="stat-1b" value="B: 0.00 mT" position="0 -0.5 0" align="center" color="#007bff" width="4"></a-text>
+                </a-entity>
+
+                <!-- Pendulum -->
+                <a-entity class="ctrl-ui" id="ctrl-2" visible="false">
+                    <a-text id="stat-2a" value="L: 1.0 m" position="0 0.2 0" align="center" color="#333" width="4"></a-text>
+                    <a-plane class="clickable" position="-0.6 -0.1 0" width="0.8" height="0.3" color="#ff4444" on-click="changeLen(-0.1)">
+                        <a-text value="Shorter (-L)" position="0 0 0.01" align="center" color="white" width="3"></a-text>
+                    </a-plane>
+                    <a-plane class="clickable" position="0.6 -0.1 0" width="0.8" height="0.3" color="#44cc44" on-click="changeLen(0.1)">
+                        <a-text value="Longer (+L)" position="0 0 0.01" align="center" color="white" width="3"></a-text>
+                    </a-plane>
+                    <a-text id="stat-2b" value="T = 2.01 s" position="0 -0.5 0" align="center" color="#007bff" width="4"></a-text>
+                </a-entity>
+
+                <!-- Spring -->
+                <a-entity class="ctrl-ui" id="ctrl-3" visible="false">
+                    <a-text id="stat-3a" value="Mass: 1.0 kg" position="0 0.2 0" align="center" color="#333" width="4"></a-text>
+                    <a-plane class="clickable" position="-0.6 -0.1 0" width="0.8" height="0.3" color="#ff4444" on-click="changeMass(-0.5)">
+                        <a-text value="Mass -" position="0 0 0.01" align="center" color="white" width="3"></a-text>
+                    </a-plane>
+                    <a-plane class="clickable" position="0.6 -0.1 0" width="0.8" height="0.3" color="#44cc44" on-click="changeMass(0.5)">
+                        <a-text value="Mass +" position="0 0 0.01" align="center" color="white" width="3"></a-text>
+                    </a-plane>
+                    <a-text id="stat-3b" value="Disp: 0.10 m\nF = 9.8 N" position="0 -0.5 0" align="center" color="#007bff" width="4"></a-text>
+                </a-entity>
+
+                <!-- Prism -->
+                <a-entity class="ctrl-ui" id="ctrl-4" visible="false">
+                    <a-text id="stat-4a" value="Incidence: 45 deg" position="0 0.2 0" align="center" color="#333" width="4"></a-text>
+                    <a-plane class="clickable" position="-0.6 -0.1 0" width="0.8" height="0.3" color="#ff4444" on-click="changeAngle(-5)">
+                        <a-text value="Angle -" position="0 0 0.01" align="center" color="white" width="3"></a-text>
+                    </a-plane>
+                    <a-plane class="clickable" position="0.6 -0.1 0" width="0.8" height="0.3" color="#44cc44" on-click="changeAngle(5)">
+                        <a-text value="Angle +" position="0 0 0.01" align="center" color="white" width="3"></a-text>
+                    </a-plane>
+                    <a-text id="stat-4b" value="Refraction: 28.1 deg\n(Snell's Law)" position="0 -0.5 0" align="center" color="#007bff" width="4"></a-text>
+                </a-entity>
+
+            </a-entity>
+        </a-entity>
+
+        <!-- Central Lab Desk Area -->
+        <a-entity id="vr-wrapper" scale="1 1 1" position="0 1.2 -3">
+            <a-cylinder position="0 -0.6 0" radius="1.6" height="1.2" color="#ffffff" material="roughness: 0.2"></a-cylinder>
+            <a-cylinder position="0 0 0" radius="1.8" height="0.1" color="#0056b3" material="metalness: 0.5"></a-cylinder>
+
+            <!-- 0: SOLAR SYSTEM -->
+            <a-entity class="mod" id="mod-0">
+                <a-torus radius="0.6" radius-tubular="0.005" rotation="90 0 0" position="0 0.5 0" color="#007bff" opacity="0.2"></a-torus>
+                <a-torus radius="1.0" radius-tubular="0.005" rotation="90 0 0" position="0 0.5 0" color="#007bff" opacity="0.2"></a-torus>
+                <a-torus radius="1.4" radius-tubular="0.005" rotation="90 0 0" position="0 0.5 0" color="#007bff" opacity="0.2"></a-torus>
+                <a-sphere position="0 0.5 0" radius="0.4" color="#ffcc00" material="emissive: #ffbb00; emissiveIntensity: 0.8"></a-sphere>
+                <a-entity class="orbit-anim" position="0 0.5 0" animation="property: rotation; to: 0 360 0; dur: 2000; loop: true; easing: linear; pauseEvents: pauseAnim; resumeEvents: resumeAnim">
+                    <a-sphere class="clickable" position="0.6 0 0" radius="0.05" color="#aaaaaa" on-click="showPlanetInfo('Mercury', 0.4)"></a-sphere>
+                </a-entity>
+                <a-entity class="orbit-anim" position="0 0.5 0" animation="property: rotation; to: 0 360 0; dur: 3500; loop: true; easing: linear; pauseEvents: pauseAnim; resumeEvents: resumeAnim">
+                    <a-sphere class="clickable" position="1.0 0 0" radius="0.08" color="#ffdd99" on-click="showPlanetInfo('Venus', 0.7)"></a-sphere>
+                </a-entity>
+                <a-entity class="orbit-anim" position="0 0.5 0" animation="property: rotation; to: 0 360 0; dur: 5000; loop: true; easing: linear; pauseEvents: pauseAnim; resumeEvents: resumeAnim">
+                    <a-sphere class="clickable" position="1.4 0 0" radius="0.1" color="#44aa44" on-click="showPlanetInfo('Earth', 1.0)"></a-sphere>
+                </a-entity>
+            </a-entity>
+
+            <!-- 1: ELECTROMAGNET -->
+            <a-entity class="mod" id="mod-1" visible="false">
+                <a-cylinder radius="0.25" height="1.2" color="#777" position="0 0.6 0" rotation="90 0 0" material="metalness: 0.8"></a-cylinder>
+                <a-text id="em-pole-n" value="N" position="-0.7 0.6 0" color="#ff4444" scale="1.5 1.5 1.5" align="center"></a-text>
+                <a-text id="em-pole-s" value="S" position="0.7 0.6 0" color="#007bff" scale="1.5 1.5 1.5" align="center"></a-text>
+
+                <a-entity rotation="0 0 90" position="0 0.6 0">
+                    <a-torus radius="0.26" radius-tubular="0.02" color="#c07a3f" position="0 0.4 0" rotation="10 0 0"></a-torus>
+                    <a-torus radius="0.26" radius-tubular="0.02" color="#c07a3f" position="0 0.2 0" rotation="10 0 0"></a-torus>
+                    <a-torus radius="0.26" radius-tubular="0.02" color="#c07a3f" position="0 0 0" rotation="10 0 0"></a-torus>
+                    <a-torus radius="0.26" radius-tubular="0.02" color="#c07a3f" position="0 -0.2 0" rotation="10 0 0"></a-torus>
+                    <a-torus radius="0.26" radius-tubular="0.02" color="#c07a3f" position="0 -0.4 0" rotation="10 0 0"></a-torus>
+                    
+                    <a-entity id="electrons" visible="false">
+                        <a-sphere id="e1" radius="0.05" color="#00ffff" material="emissive: #00ffff" position="0.26 0.4 0" animation="property: position; to: 0.26 -0.4 0; dur: 800; loop: true"></a-sphere>
+                        <a-sphere id="e2" radius="0.05" color="#00ffff" material="emissive: #00ffff" position="-0.26 0.2 0" animation="property: position; to: -0.26 -0.4 0; dur: 800; loop: true; delay: 400"></a-sphere>
+                    </a-entity>
+                </a-entity>
+
+                <a-entity id="mag-lines" visible="false" position="0 0.6 0">
+                    <a-torus arc="180" radius="0.8" radius-tubular="0.01" rotation="0 0 0" color="#00ffff" opacity="0.4" side="double"></a-torus>
+                    <a-torus arc="180" radius="0.8" radius-tubular="0.01" rotation="0 180 0" color="#00ffff" opacity="0.4" side="double"></a-torus>
+                </a-entity>
+            </a-entity>
+
+            <!-- 2: PENDULUM -->
+            <a-entity class="mod" id="mod-2" visible="false">
+                <!-- Stand -->
+                <a-cylinder radius="0.05" height="1.5" position="-0.5 0.8 0" color="#333"></a-cylinder>
+                <a-cylinder radius="0.05" height="1.0" position="0 1.5 0" rotation="0 0 90" color="#333"></a-cylinder>
+                
+                <!-- Pendulum Pivot & String & Bob -->
+                <a-entity id="pendulum-pivot" position="0 1.5 0">
+                    <!-- This will be animated via JS logic tick to swing back and forth -->
+                    <a-cylinder id="pend-string" radius="0.01" height="1" position="0 -0.5 0" color="#aaaaaa"></a-cylinder>
+                    <a-sphere id="pend-bob" radius="0.1" position="0 -1 0" color="#ff4444" material="metalness: 0.5"></a-sphere>
+                </a-entity>
+            </a-entity>
+
+            <!-- 3: SPRING MASS -->
+            <a-entity class="mod" id="mod-3" visible="false">
+                <!-- Stand -->
+                <a-cylinder radius="0.05" height="1.5" position="-0.5 0.8 0" color="#333"></a-cylinder>
+                <a-cylinder radius="0.05" height="1.0" position="0 1.5 0" rotation="0 0 90" color="#333"></a-cylinder>
+                
+                <!-- Faked spring using torus-knot -->
+                <a-torus-knot id="spring-mesh" radius="0.05" radius-tubular="0.005" p="1" q="20" position="0 1.0 0" rotation="90 0 0" scale="1 1 5" color="#aaa"></a-torus-knot>
+                
+                <!-- Mass Weight -->
+                <a-box id="spring-weight" width="0.2" height="0.2" depth="0.2" position="0 0.5 0" color="#ffcc00" material="metalness:0.8"></a-box>
+            </a-entity>
+
+            <!-- 4: PRISM OPTICS -->
+            <a-entity class="mod" id="mod-4" visible="false">
+                <!-- Triangular Prism -->
+                <a-cylinder segments-radial="3" radius="0.4" height="0.8" position="0 0.6 0" color="#ffffff" opacity="0.4" rotation="0 180 0"></a-cylinder>
+                
+                <!-- Incident Laser -->
+                <a-entity id="laser-pivot" position="0 0.6 0" rotation="0 45 0">
+                    <!-- The beam comes FROM far away (z=5) TO the prism (z=0) -->
+                    <a-cylinder radius="0.01" height="2" position="0 0 1" rotation="90 0 0" color="#ff0000" material="emissive: #ff0000; emissiveIntensity: 1"></a-cylinder>
+                </a-entity>
+                
+                <!-- Refracted Laser -->
+                <a-entity id="refract-pivot" position="0 0.6 0" rotation="0 28 0">
+                    <!-- The beam comes FROM prism TO far away (z=-5) -->
+                    <a-cylinder radius="0.01" height="2" position="0 0 -1" rotation="90 0 0" color="#ff0000" material="emissive: #ff0000; emissiveIntensity: 1" opacity="0.6"></a-cylinder>
+                </a-entity>
+            </a-entity>
+
+        </a-entity>
+    </a-scene>
+
+    <script>
+        const procedures = [
+            "Solar System Dynamics:\n\n1. Use Universe Scale (+/-) to fit the planets.\n2. Click a planet sphere to fetch its radius and orbital period.\n3. Pause Orbits to select moving targets easier.\n\nObserve Kepler's Third Law intuitively.",
+            "Electromagnetism:\n\n1. Click Volts (+/-) to push current through the copper coil.\n2. Observe the magnetic B-Field flux lines form.\n3. Drop current below 0A to reverse polarity.\n4. Note how the N/S poles flip (Right-Hand Rule) and electrons flow in reverse.",
+            "Simple Pendulum:\n\n1. Click +L / -L to change the length of the string.\n2. Observe the swinging oscillation.\n3. Watch the Period (T) calculation update.\n4. Notice that Period T is independent of the bob's mass, only string length and gravity g.",
+            "Hooke's Law (Spring):\n\n1. Click Mass (+/-) to add weight to the spring.\n2. Observe the downward displacement of the block.\n3. Check the calculated Restoring Force (F = -kx).\n4. Higher mass stretches the spring further.",
+            "Prism Optics:\n\n1. Adjust the Incidence Angle of the red laser hitting the glass prism.\n2. Watch the Refracted beam bend.\n3. Check Snell's Law calculations on the math board.\n4. Notice how the bending changes as angle approaches 0."
+        ];
+
+        let curMod = 0;
+        let infoVisible = false;
+
+        // UI & Switching
+        window.switchMod = function(index) {
+            curMod = index;
+            // Hide all models and UIs
+            document.querySelectorAll('.mod').forEach(el => el.setAttribute('visible', 'false'));
+            document.querySelectorAll('.ctrl-ui').forEach(el => el.setAttribute('visible', 'false'));
+            // Show new
+            document.getElementById('mod-' + index).setAttribute('visible', 'true');
+            document.getElementById('ctrl-' + index).setAttribute('visible', 'true');
+            
+            // Update procedure board
+            document.getElementById('proc-text').setAttribute('value', procedures[index]);
+            let titles = ["Solar System", "Electromagnet", "Pendulum", "Hooke's Law", "Prism Optics"];
+            document.getElementById('proc-title').setAttribute('value', titles[index] + " Procedure");
+        };
+
+        window.toggleInfo = function() {
+            infoVisible = !infoVisible;
+            document.getElementById('procedure-board').setAttribute('visible', infoVisible ? 'true' : 'false');
+        };
+
+        // Initialize board texts
+        document.getElementById('proc-text').setAttribute('value', procedures[0]);
+        document.getElementById('proc-title').setAttribute('value', "Solar System Procedure");
+
+        // Module 0: Solar System
+        let orbitsPaused = false;
+        window.toggleOrbits = function() {
+            orbitsPaused = !orbitsPaused;
+            document.querySelectorAll('.orbit-anim').forEach(el => el.emit(orbitsPaused ? 'pauseAnim' : 'resumeAnim'));
+            document.getElementById('btn-orbit').setAttribute('value', orbitsPaused ? 'Resume Orbits' : 'Pause Orbits');
+        };
+        window.showPlanetInfo = function(name, radius) {
+            let period = Math.sqrt(Math.pow(radius, 3) * 10).toFixed(2);
+            document.getElementById('stat-0').setAttribute('value', `${name}\nRad: ${radius}AU | T: ${period}y`);
+        };
+
+        // Module 1: Electromagnet
+        let emI = 0;
+        const emN = document.getElementById('em-pole-n');
+        const emS = document.getElementById('em-pole-s');
+        const emElec = document.getElementById('electrons');
+        const emMag = document.getElementById('mag-lines');
+        window.changeAmp = function(dir) {
+            emI += dir;
+            if (emI < -10) emI = -10;
+            if (emI > 10) emI = 10;
+            
+            document.getElementById('stat-1a').setAttribute('value', `Current: ${emI} A`);
+            let bStrength = (1.256e-6 * 500 * Math.abs(emI) * 1000).toFixed(2);
+            document.getElementById('stat-1b').setAttribute('value', `B: ${bStrength} mT`);
+
+            if (emI !== 0) {
+                emElec.setAttribute('visible', 'true');
+                emMag.setAttribute('visible', 'true');
+                emMag.setAttribute('opacity', 0.2 + (Math.abs(emI)/10)*0.6); // Scales flux visual
+                
+                // Flip poles
+                if (emI > 0) {
+                    emN.setAttribute('position', '-0.7 0.6 0');
+                    emS.setAttribute('position', '0.7 0.6 0');
+                    document.getElementById('e1').setAttribute('animation', `property: position; to: 0.26 -0.4 0; dur: 800; loop: true`);
+                    document.getElementById('e2').setAttribute('animation', `property: position; to: -0.26 -0.4 0; dur: 800; loop: true; delay: 400`);
+                } else {
+                    emN.setAttribute('position', '0.7 0.6 0');
+                    emS.setAttribute('position', '-0.7 0.6 0');
+                    // Reverse electron animation flow
+                    document.getElementById('e1').setAttribute('animation', `property: position; to: 0.26 0.4 0; dur: 800; loop: true`);
+                    document.getElementById('e2').setAttribute('animation', `property: position; to: -0.26 0.4 0; dur: 800; loop: true; delay: 400`);
+                }
+            } else {
+                emElec.setAttribute('visible', 'false');
+                emMag.setAttribute('visible', 'false');
+            }
+        };
+
+        // Module 2: Pendulum
+        let pendL = 1.0;
+        let pendTime = 0;
+        window.changeLen = function(dir) {
+            pendL += dir;
+            if(pendL < 0.2) pendL = 0.2;
+            if(pendL > 1.8) pendL = 1.8;
+            
+            let T = 2 * Math.PI * Math.sqrt(pendL / 9.81);
+            document.getElementById('stat-2a').setAttribute('value', `L: ${pendL.toFixed(1)} m`);
+            document.getElementById('stat-2b').setAttribute('value', `T = 2pi*sqrt(L/g)\nT = ${T.toFixed(2)} s`);
+            
+            document.getElementById('pend-string').setAttribute('height', pendL);
+            document.getElementById('pend-string').setAttribute('position', `0 ${-pendL/2} 0`);
+            document.getElementById('pend-bob').setAttribute('position', `0 ${-pendL} 0`);
+        };
+        // Simple manual animation tick for pendulum to use the exact formula
+        setInterval(() => {
+            if(curMod === 2) {
+                pendTime += 0.05;
+                let omega = Math.sqrt(9.81 / pendL);
+                let theta = 30 * Math.cos(omega * pendTime); // Max swing 30 deg
+                document.getElementById('pendulum-pivot').setAttribute('rotation', `0 0 ${theta}`);
+            }
+        }, 50);
+
+        // Module 3: Spring
+        let springM = 1.0;
+        let springK = 50; // N/m
+        window.changeMass = function(dir) {
+            springM += dir;
+            if(springM < 0.5) springM = 0.5;
+            if(springM > 5.0) springM = 5.0;
+            
+            let force = springM * 9.81;
+            let disp = force / springK; // F = kx -> x = F/k
+            
+            document.getElementById('stat-3a').setAttribute('value', `Mass: ${springM.toFixed(1)} kg`);
+            document.getElementById('stat-3b').setAttribute('value', `Disp (x): ${disp.toFixed(2)} m\nF = ${force.toFixed(1)} N`);
+            
+            // Visual mapping (spring base is 1.0 high, weight goes down)
+            let newY = 1.0 - (disp * 2); // multiplied by 2 for visual exaggeration
+            document.getElementById('spring-weight').setAttribute('position', `0 ${newY} 0`);
+            
+            // Adjust visual spring length (Torus knot scaling)
+            let scaleY = (1.5 - newY) * 3; 
+            document.getElementById('spring-mesh').setAttribute('scale', `1 1 ${scaleY}`);
+            document.getElementById('spring-mesh').setAttribute('position', `0 ${1.5 - (1.5-newY)/2} 0`);
+        };
+
+        // Module 4: Prism
+        let prismInc = 45;
+        let nGlass = 1.5;
+        window.changeAngle = function(dir) {
+            prismInc += dir;
+            if(prismInc < 0) prismInc = 0;
+            if(prismInc > 80) prismInc = 80;
+            
+            // Snell's Law: n1*sin(t1) = n2*sin(t2)
+            // 1.0 * sin(prismInc) = 1.5 * sin(refract)
+            let radInc = prismInc * (Math.PI / 180);
+            let sinRef = Math.sin(radInc) / nGlass;
+            let radRef = Math.asin(sinRef);
+            let prismRef = radRef * (180 / Math.PI);
+            
+            document.getElementById('stat-4a').setAttribute('value', `Incidence: ${prismInc} deg`);
+            document.getElementById('stat-4b').setAttribute('value', `Refraction: ${prismRef.toFixed(1)} deg\n(Snell's Law)`);
+            
+            document.getElementById('laser-pivot').setAttribute('rotation', `0 ${prismInc} 0`);
+            document.getElementById('refract-pivot').setAttribute('rotation', `0 ${prismRef} 0`);
+        };
+
+        // Scale Logic
+        let scaleIdx = 4;
+        const scaleMap = [
+            {val: -15, desc: 'Atomic Nucleus'}, {val: -10, desc: 'Atom'}, 
+            {val: -9, desc: 'DNA Strand'}, {val: -6, desc: 'Cell'},
+            {val: 0, desc: 'Human Scale'}, {val: 3, desc: 'City'}, 
+            {val: 9, desc: 'Earth-Moon'}, {val: 12, desc: 'Solar System'},
+            {val: 21, desc: 'Milky Way'}, {val: 24, desc: 'Universe'}
+        ];
+        window.changeScale = function(dir) {
+            scaleIdx += dir;
+            if(scaleIdx < 0) scaleIdx = 0;
+            if(scaleIdx >= scaleMap.length) scaleIdx = scaleMap.length - 1;
+            
+            let item = scaleMap[scaleIdx];
+            document.getElementById('vr-scale-desc').setAttribute('value', `10^${item.val} m\n${item.desc}`);
+
+            let actScale = 1;
+            if (item.val > 0) actScale = 1 + (item.val / 24) * 4; 
+            else if (item.val < 0) actScale = Math.max(0.1, 1 - (Math.abs(item.val) / 15) * 0.9);
+            document.getElementById('vr-wrapper').setAttribute('scale', `${actScale} ${actScale} ${actScale}`);
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Biology Lab VR - Kalinga Laboratories</title>
+    <!-- A-Frame -->
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #f8f9fa; font-family: 'Segoe UI', system-ui, sans-serif; }
+        .logo { position: fixed; top: 16px; left: 16px; height: 48px; width: auto; z-index: 9999; pointer-events: none; }
+        .top-nav { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); text-align: center; background: rgba(255,255,255,0.9); padding: 10px 20px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,51,102,0.2); z-index: 9999; pointer-events: auto; }
+        .top-nav h1 { margin: 0; font-size: 1.2rem; color: #003366; }
+        .back-link { text-decoration: none; color: #007bff; font-size: 0.9rem; font-weight: 600; }
+    </style>
+    <script>
+        AFRAME.registerComponent('hover-color', {
+            init: function () {
+                var el = this.el;
+                var defaultColor = el.getAttribute('color');
+                el.addEventListener('mouseenter', function () { el.setAttribute('color', '#003366'); });
+                el.addEventListener('mouseleave', function () { el.setAttribute('color', defaultColor); });
+            }
+        });
+        AFRAME.registerComponent('on-click', {
+            schema: {type: 'string'},
+            init: function () {
+                var action = this.data;
+                this.el.addEventListener('click', function () { new Function(action)(); });
+            }
+        });
+    </script>
+</head>
+<body>
+    <img src="assets/logo.png" alt="Kalinga Labs" class="logo">
+    <div class="top-nav">
+        <a href="index.html" class="back-link">&larr; Return to Atrium HUB</a>
+        <h1>Biology VR Lab</h1>
+    </div>
+
+    <a-scene cursor="rayOrigin: mouse" raycaster="objects: .clickable">
+        <!-- Environment -->
+        <a-plane position="0 10 0" rotation="90 0 0" width="40" height="40" color="#ffffff" material="roughness: 0.8"></a-plane>
+        <a-plane position="0 0 0" rotation="-90 0 0" width="40" height="40" color="#99aab5" material="roughness: 0.8"></a-plane>
+        <a-plane position="0 5 -20" rotation="0 0 0" width="40" height="10" color="#e6f2ff"></a-plane>
+        <a-plane position="0 5 20" rotation="0 180 0" width="40" height="10" color="#e6f2ff"></a-plane>
+        <a-plane position="-20 5 0" rotation="0 90 0" width="40" height="10" color="#dbe5f1"></a-plane>
+        <a-plane position="20 5 0" rotation="0 -90 0" width="40" height="10" color="#dbe5f1"></a-plane>
+        
+        <a-light type="ambient" color="#ffffff" intensity="0.5"></a-light>
+        <a-light type="point" position="0 8 -2" intensity="0.4" color="#e6ffff"></a-light>
+
+        <!-- Player -->
+        <a-entity id="rig" position="0 0 0">
+            <a-camera position="0 1.6 0" wasd-controls="fly: true">
+                <a-cursor color="#003366" raycaster="objects: .clickable"></a-cursor>
+            </a-camera>
+            <a-entity laser-controls="hand: left" raycaster="objects: .clickable; far: 10"></a-entity>
+            <a-entity laser-controls="hand: right" raycaster="objects: .clickable; far: 10"></a-entity>
+        </a-entity>
+
+        <!-- PROCEDURE BOARD -->
+        <a-entity id="procedure-board" position="0 3 -4" rotation="15 0 0" visible="false">
+            <a-plane width="3" height="1.6" color="#003366" opacity="0.95"></a-plane>
+            <a-text id="proc-title" value="Procedure" position="0 0.6 0.05" align="center" color="#ffcc00" width="4"></a-text>
+            <a-text id="proc-text" value="..." position="-1.3 0 0.05" align="left" color="#ffffff" width="2.8" line-height="50"></a-text>
+        </a-entity>
+
+        <!-- MAIN DASHBOARD -->
+        <a-entity position="-2.8 1.5 -2.5" rotation="0 35 0">
+            <a-plane width="2.2" height="3" color="#ffffff" opacity="0.9"></a-plane>
+            <a-text value="Biology Modules" position="0 1.2 0.05" align="center" color="#003366" width="4"></a-text>
+            
+            <a-plane class="clickable" position="0 0.8 0.05" width="1.8" height="0.3" color="#007bff" hover-color on-click="switchMod(0)">
+                <a-text value="1. Human Heart" position="0 0 0.01" align="center" color="white" width="3"></a-text>
+            </a-plane>
+            <a-plane class="clickable" position="0 0.4 0.05" width="1.8" height="0.3" color="#007bff" hover-color on-click="switchMod(1)">
+                <a-text value="2. Cell Osmosis" position="0 0 0.01" align="center" color="white" width="3"></a-text>
+            </a-plane>
+            <a-plane class="clickable" position="0 0.0 0.05" width="1.8" height="0.3" color="#007bff" hover-color on-click="switchMod(2)">
+                <a-text value="3. DNA Helix" position="0 0 0.01" align="center" color="white" width="3"></a-text>
+            </a-plane>
+            <a-plane class="clickable" position="0 -0.4 0.05" width="1.8" height="0.3" color="#007bff" hover-color on-click="switchMod(3)">
+                <a-text value="4. Photosynthesis" position="0 0 0.01" align="center" color="white" width="3"></a-text>
+            </a-plane>
+            <a-plane class="clickable" position="0 -0.8 0.05" width="1.8" height="0.3" color="#007bff" hover-color on-click="switchMod(4)">
+                <a-text value="5. Human Brain" position="0 0 0.01" align="center" color="white" width="3"></a-text>
+            </a-plane>
+
+            <a-plane class="clickable" position="0 -1.2 0.05" width="1.8" height="0.3" color="#ffcc00" hover-color on-click="toggleInfo()">
+                <a-text value="? Info / Procedure" position="0 0 0.01" align="center" color="#003366" width="3"></a-text>
+            </a-plane>
+        </a-entity>
+
+        <!-- SCALE & MATH PANEL -->
+        <a-entity position="2.8 1.5 -2.5" rotation="0 -35 0">
+            <a-plane width="2.4" height="3" color="#ffffff" opacity="0.9"></a-plane>
+            <a-text value="Math & Scale" position="0 1.2 0.05" align="center" color="#003366" width="4"></a-text>
+            
+            <a-text id="vr-scale-desc" value="10^0 m\nHuman Scale" position="0 0.8 0.05" align="center" color="#333" width="3"></a-text>
+            <a-plane class="clickable" position="-0.5 0.5 0.05" width="0.6" height="0.3" color="#ff4444" hover-color on-click="changeScale(-1)">
+                <a-text value="Zoom Out" position="0 0 0.01" align="center" color="white" width="3"></a-text>
+            </a-plane>
+            <a-plane class="clickable" position="0.5 0.5 0.05" width="0.6" height="0.3" color="#44cc44" hover-color on-click="changeScale(1)">
+                <a-text value="Zoom In" position="0 0 0.01" align="center" color="white" width="3"></a-text>
+            </a-plane>
+
+            <a-entity id="vr-logic-panel" position="0 -0.3 0.05">
+                <a-text value="Calculations" position="0 0.5 0" align="center" color="#003366" width="4"></a-text>
+                
+                <!-- 0: Heart -->
+                <a-entity class="ctrl-ui" id="ctrl-0" visible="true">
+                    <a-text id="stat-0a" value="Click a heart chamber" position="0 0.2 0" align="center" color="#ff4444" width="4"></a-text>
+                    <a-text id="stat-0b" value="Heart Rate: 72 BPM\nCardiac Output: 5.0 L/min" position="0 -0.4 0" align="center" color="#333" width="4"></a-text>
+                </a-entity>
+
+                <!-- 1: Cell -->
+                <a-entity class="ctrl-ui" id="ctrl-1" visible="false">
+                    <a-text id="stat-1a" value="Solute Conc: 0.15 M" position="0 0.2 0" align="center" color="#333" width="4"></a-text>
+                    <a-plane class="clickable" position="-0.6 -0.1 0" width="0.8" height="0.3" color="#ffaa00" on-click="changeConc(-0.05)">
+                        <a-text value="Hypotonic -" position="0 0 0.01" align="center" color="white" width="3"></a-text>
+                    </a-plane>
+                    <a-plane class="clickable" position="0.6 -0.1 0" width="0.8" height="0.3" color="#aa00ff" on-click="changeConc(0.05)">
+                        <a-text value="Hypertonic +" position="0 0 0.01" align="center" color="white" width="3"></a-text>
+                    </a-plane>
+                    <a-text id="stat-1b" value="Osmotic Pressure: 3.7 atm\n(pi = iMRT)" position="0 -0.5 0" align="center" color="#007bff" width="4"></a-text>
+                </a-entity>
+
+                <!-- 2: DNA -->
+                <a-entity class="ctrl-ui" id="ctrl-2" visible="false">
+                    <a-text id="stat-2a" value="State: Double Helix" position="0 0.2 0" align="center" color="#333" width="4"></a-text>
+                    <a-plane class="clickable" position="0 -0.1 0" width="1.4" height="0.3" color="#ff4444" on-click="toggleDNA()">
+                        <a-text id="dna-btn" value="Heat/Helicase (Unzip)" position="0 0 0.01" align="center" color="white" width="3"></a-text>
+                    </a-plane>
+                    <a-text id="stat-2b" value="Hydrogen Bonds: Intact\nA-T (2), C-G (3)" position="0 -0.5 0" align="center" color="#007bff" width="4"></a-text>
+                </a-entity>
+
+                <!-- 3: Photosynthesis -->
+                <a-entity class="ctrl-ui" id="ctrl-3" visible="false">
+                    <a-text id="stat-3a" value="Light Intensity: 50%" position="0 0.2 0" align="center" color="#333" width="4"></a-text>
+                    <a-plane class="clickable" position="-0.6 -0.1 0" width="0.8" height="0.3" color="#555" on-click="changeLight(-10)">
+                        <a-text value="Dim -" position="0 0 0.01" align="center" color="white" width="3"></a-text>
+                    </a-plane>
+                    <a-plane class="clickable" position="0.6 -0.1 0" width="0.8" height="0.3" color="#ffdd00" on-click="changeLight(10)">
+                        <a-text value="Brighten +" position="0 0 0.01" align="center" color="#333" width="3"></a-text>
+                    </a-plane>
+                    <a-text id="stat-3b" value="Glucose Yield: 2.0 mg/h\nO2 Yield: 1.5 ml/h" position="0 -0.5 0" align="center" color="#44cc44" width="4"></a-text>
+                </a-entity>
+
+                <!-- 4: Brain -->
+                <a-entity class="ctrl-ui" id="ctrl-4" visible="false">
+                    <a-text id="stat-4a" value="Click a Brain Lobe" position="0 0.2 0" align="center" color="#007bff" width="4"></a-text>
+                    <a-text id="stat-4b" value="Mapping cerebrum functions\nin real-time." position="0 -0.4 0" align="center" color="#333" width="4"></a-text>
+                </a-entity>
+
+            </a-entity>
+        </a-entity>
+
+        <!-- Central Lab Area -->
+        <a-entity id="vr-wrapper" scale="1 1 1" position="0 1.2 -3">
+            <a-cylinder position="0 -0.6 0" radius="1.6" height="1.2" color="#ffffff" material="roughness: 0.2"></a-cylinder>
+            <a-cylinder position="0 0 0" radius="1.8" height="0.1" color="#0056b3" material="metalness: 0.5"></a-cylinder>
+
+            <!-- 0: HEART -->
+            <a-entity class="mod" id="mod-0">
+                <a-entity id="heart-wrapper" position="0 0.5 0">
+                    <a-entity id="atria" animation="property: scale; to: 1.05 1.05 1.05; dur: 250; loop: true; dir: alternate; easing: easeInOutSine">
+                        <a-sphere class="clickable" radius="0.22" color="#e63946" position="0.25 0.5 -0.1" material="roughness: 0.6" on-click="showHeart('Left Atrium')"></a-sphere>
+                        <a-sphere class="clickable" radius="0.22" color="#457b9d" position="-0.25 0.4 0.1" material="roughness: 0.6" on-click="showHeart('Right Atrium')"></a-sphere>
+                    </a-entity>
+                    <a-entity id="ventricles" animation="property: scale; to: 1.1 1.1 1.1; dur: 400; loop: true; dir: alternate; easing: easeInOutSine">
+                        <a-sphere class="clickable" radius="0.38" scale="1 1.3 1" color="#c1121f" position="0.15 0.05 0" material="roughness: 0.7" on-click="showHeart('Left Ventricle')"></a-sphere>
+                        <a-sphere class="clickable" radius="0.32" scale="1 1.25 1" color="#780000" position="-0.22 0.0 0.15" material="roughness: 0.7" on-click="showHeart('Right Ventricle')"></a-sphere>
+                        <a-torus arc="100" radius="0.38" radius-tubular="0.015" color="#ffd166" position="0.05 0.1 0.2" rotation="30 45 45"></a-torus>
+                    </a-entity>
+                    <a-entity id="vessels">
+                        <a-entity class="clickable" on-click="showHeart('Aorta')">
+                            <a-torus arc="180" radius="0.25" radius-tubular="0.08" color="#d62828" position="0.1 0.7 -0.1"></a-torus>
+                        </a-entity>
+                        <a-cylinder class="clickable" radius="0.08" height="0.6" color="#1d3557" position="-0.1 0.65 0.15" rotation="0 0 -40" on-click="showHeart('Pulmonary Artery')"></a-cylinder>
+                        <a-cylinder class="clickable" radius="0.07" height="0.5" color="#0b1b3d" position="-0.35 0.7 0.05" on-click="showHeart('Vena Cava')"></a-cylinder>
+                    </a-entity>
+                    <!-- Glowing particles -->
+                    <a-sphere radius="0.03" color="#ff7b00" material="emissive: #ff7b00" animation="property: position; from: 0.1 0.6 -0.1; to: 0.35 0.8 -0.1; dur: 1200; loop: true"></a-sphere>
+                    <a-sphere radius="0.03" color="#00ffff" material="emissive: #00ffff" animation="property: position; from: -0.35 0.95 0.05; to: -0.35 0.45 0.05; dur: 1000; loop: true"></a-sphere>
+                </a-entity>
+            </a-entity>
+
+            <!-- 1: CELL -->
+            <a-entity class="mod" id="mod-1" visible="false">
+                <a-entity id="cell-wrapper" position="0 0.5 0">
+                    <a-sphere id="cell-membrane" class="clickable" radius="0.8" color="#00ff00" opacity="0.3" material="transparent: true; side: double"></a-sphere>
+                    <a-sphere class="clickable" radius="0.25" color="#0000ff" position="0.1 0.1 -0.1"></a-sphere> <!-- Nucleus -->
+                    <a-sphere class="clickable" radius="0.08" color="#ff9900" scale="2 1 1" position="-0.3 0.2 0.2" rotation="45 45 0"></a-sphere> <!-- Mitochondria -->
+                    <a-sphere class="clickable" radius="0.08" color="#ff9900" scale="2 1 1" position="0.4 -0.3 0.1" rotation="-30 20 0"></a-sphere>
+                </a-entity>
+            </a-entity>
+
+            <!-- 2: DNA -->
+            <a-entity class="mod" id="mod-2" visible="false">
+                <a-entity id="dna-strand" position="0 0.6 0" animation="property: rotation; to: 0 360 0; dur: 8000; loop: true; easing: linear">
+                    <!-- Basic helix approximation with cylinders -->
+                    <!-- Loop handled by writing a few instances -->
+                    <a-entity position="0 -0.6 0">
+                        <a-cylinder id="rung1" radius="0.02" height="0.6" rotation="0 0 90" color="#ffcc00"></a-cylinder>
+                        <a-sphere position="-0.3 0 0" radius="0.05" color="#007bff"></a-sphere>
+                        <a-sphere position="0.3 0 0" radius="0.05" color="#ff4444"></a-sphere>
+                    </a-entity>
+                    <a-entity position="0 -0.3 0" rotation="0 45 0">
+                        <a-cylinder id="rung2" radius="0.02" height="0.6" rotation="0 0 90" color="#44cc44"></a-cylinder>
+                        <a-sphere position="-0.3 0 0" radius="0.05" color="#007bff"></a-sphere>
+                        <a-sphere position="0.3 0 0" radius="0.05" color="#ff4444"></a-sphere>
+                    </a-entity>
+                    <a-entity position="0 0 0" rotation="0 90 0">
+                        <a-cylinder id="rung3" radius="0.02" height="0.6" rotation="0 0 90" color="#ffcc00"></a-cylinder>
+                        <a-sphere position="-0.3 0 0" radius="0.05" color="#007bff"></a-sphere>
+                        <a-sphere position="0.3 0 0" radius="0.05" color="#ff4444"></a-sphere>
+                    </a-entity>
+                    <a-entity position="0 0.3 0" rotation="0 135 0">
+                        <a-cylinder id="rung4" radius="0.02" height="0.6" rotation="0 0 90" color="#44cc44"></a-cylinder>
+                        <a-sphere position="-0.3 0 0" radius="0.05" color="#007bff"></a-sphere>
+                        <a-sphere position="0.3 0 0" radius="0.05" color="#ff4444"></a-sphere>
+                    </a-entity>
+                    <a-entity position="0 0.6 0" rotation="0 180 0">
+                        <a-cylinder id="rung5" radius="0.02" height="0.6" rotation="0 0 90" color="#ffcc00"></a-cylinder>
+                        <a-sphere position="-0.3 0 0" radius="0.05" color="#007bff"></a-sphere>
+                        <a-sphere position="0.3 0 0" radius="0.05" color="#ff4444"></a-sphere>
+                    </a-entity>
+                    <!-- Backbones via torus knot for cool effect -->
+                    <a-torus-knot radius="0.32" radius-tubular="0.015" p="1" q="2" scale="1 2.5 1" color="#aaa" id="dna-spine"></a-torus-knot>
+                </a-entity>
+            </a-entity>
+
+            <!-- 3: PHOTOSYNTHESIS -->
+            <a-entity class="mod" id="mod-3" visible="false">
+                <a-entity position="0 0.5 0">
+                    <!-- The Leaf -->
+                    <a-cylinder radius="0.6" height="0.02" color="#22aa22" position="0 -0.2 0" scale="1 1 0.6" material="roughness: 0.9"></a-cylinder>
+                    <a-cylinder radius="0.1" height="0.8" color="#117711" position="0 -0.2 -0.8" rotation="90 0 0"></a-cylinder>
+                    
+                    <!-- The Sun (Light source) -->
+                    <a-sphere id="sun" radius="0.2" color="#ffcc00" material="emissive: #ffbb00; emissiveIntensity: 0.5" position="-1 1 0"></a-sphere>
+                    <!-- Visual ray -->
+                    <a-cone id="sun-ray" radius-bottom="0.4" radius-top="0" height="1.5" color="#ffffaa" opacity="0.3" position="-0.5 0.4 0" rotation="0 0 -45" material="transparent: true; emissive: #ffffaa"></a-cone>
+                    
+                    <!-- Products -->
+                    <a-text value="CO2 + H2O" position="-0.5 0 0.5" color="#444" scale="0.8 0.8 0.8"></a-text>
+                    <a-text value="-> C6H12O6 + O2" position="0.2 -0.1 0.5" color="#007bff" scale="0.8 0.8 0.8"></a-text>
+                </a-entity>
+            </a-entity>
+
+            <!-- 4: BRAIN -->
+            <a-entity class="mod" id="mod-4" visible="false">
+                <a-entity position="0 0.8 0" scale="1.5 1.5 1.5">
+                    <!-- Frontal -->
+                    <a-sphere class="clickable" radius="0.25" position="-0.15 0.1 0.15" color="#e63946" material="roughness: 0.8" on-click="showBrain('Frontal')"></a-sphere>
+                    <!-- Parietal -->
+                    <a-sphere class="clickable" radius="0.24" position="0.1 0.25 0.1" color="#457b9d" material="roughness: 0.8" on-click="showBrain('Parietal')"></a-sphere>
+                    <!-- Occipital -->
+                    <a-sphere class="clickable" radius="0.2" position="0.22 0.05 -0.1" color="#a8dadc" material="roughness: 0.8" on-click="showBrain('Occipital')"></a-sphere>
+                    <!-- Temporal -->
+                    <a-sphere class="clickable" radius="0.2" position="0 -0.1 0.15" color="#f4a261" material="roughness: 0.8" on-click="showBrain('Temporal')"></a-sphere>
+                    <!-- Cerebellum -->
+                    <a-sphere class="clickable" radius="0.15" position="0.15 -0.2 -0.1" color="#2a9d8f" material="roughness: 0.8" on-click="showBrain('Cerebellum')"></a-sphere>
+                </a-entity>
+            </a-entity>
+
+        </a-entity>
+    </a-scene>
+
+    <script>
+        const procedures = [
+            "Human Heart Anatomy:\n\n1. Interact with Atria (top) and Ventricles (bottom).\n2. Note the 'Lub-Dub' animation.\n3. Track oxygenated vs deoxygenated flow paths.",
+            "Animal Cell Osmosis:\n\n1. Modify extracellular Solute Concentration.\n2. Hypertonic: Cell shrinks (water leaves).\n3. Hypotonic: Cell swells (water enters).\n4. Observe Osmotic Pressure (pi = iMRT).",
+            "DNA Double Helix:\n\n1. Observe standard Double Helix twisting.\n2. Trigger Helicase enzyme to Break Hydrogen bonds inside.\n3. Note Adenine-Thymine and Cytosine-Guanine pairings.",
+            "Photosynthesis:\n\n1. Adjust Sun Light Intensity.\n2. Observe leaf absorbing photons.\n3. Calculate Glucose and Oxygen production rates relative to energy.\n4. CO2 + Energy -> Sugar.",
+            "Human Brain Regions:\n\n1. Select various colored lobes of the cerebrum.\n2. Identify cognitive functions (Frontal=Logic, Occipital=Vision)."
+        ];
+
+        let curMod = 0;
+        let infoVisible = false;
+
+        window.switchMod = function(index) {
+            curMod = index;
+            document.querySelectorAll('.mod').forEach(el => el.setAttribute('visible', 'false'));
+            document.querySelectorAll('.ctrl-ui').forEach(el => el.setAttribute('visible', 'false'));
+            document.getElementById('mod-' + index).setAttribute('visible', 'true');
+            document.getElementById('ctrl-' + index).setAttribute('visible', 'true');
+            
+            document.getElementById('proc-text').setAttribute('value', procedures[index]);
+            let titles = ["Human Heart", "Cell Osmosis", "DNA Helix", "Photosynthesis", "Human Brain"];
+            document.getElementById('proc-title').setAttribute('value', titles[index] + " Procedure");
+        };
+
+        window.toggleInfo = function() {
+            infoVisible = !infoVisible;
+            document.getElementById('procedure-board').setAttribute('visible', infoVisible ? 'true' : 'false');
+        };
+        document.getElementById('proc-text').setAttribute('value', procedures[0]);
+        document.getElementById('proc-title').setAttribute('value', "Heart Procedure");
+
+        // 0: Heart
+        window.showHeart = function(part) {
+            let desc = "";
+            if(part === 'Left Atrium') desc = "Receives oxygen-rich blood.";
+            if(part === 'Right Atrium') desc = "Receives deoxygenated blood.";
+            if(part === 'Left Ventricle') desc = "Pumps blood to whole body. Highest pressure.";
+            if(part === 'Right Ventricle') desc = "Pumps blood to lungs.";
+            if(part === 'Aorta') desc = "Main artery carrying oxygenated blood.";
+            if(part === 'Pulmonary Artery') desc = "To lungs.";
+            if(part === 'Vena Cava') desc = "Main vein returning to heart.";
+            document.getElementById('stat-0a').setAttribute('value', `Selected: ${part}`);
+            document.getElementById('stat-0b').setAttribute('value', `Function: ${desc}\nHeart Rate: 72 BPM`);
+        };
+
+        // 1: Cell
+        let Conc = 0.15; // Isotonic roughly
+        window.changeConc = function(dir) {
+            Conc += dir;
+            if(Conc < 0.05) Conc = 0.05;
+            if(Conc > 0.5) Conc = 0.5;
+            
+            let T = 300; let R = 0.0821;
+            let pi = 1 * Conc * R * T;
+            
+            document.getElementById('stat-1a').setAttribute('value', `Solute Conc: ${Conc.toFixed(2)} M`);
+            document.getElementById('stat-1b').setAttribute('value', `Osmotic Pressure: ${pi.toFixed(1)} atm\n(pi = iMRT)`);
+            
+            // Visual cell size based on osmosis: Inverse to outside concentration.
+            // Hypertonic (high conc outside) -> water leaves -> cell shrinks.
+            let cellRad = 0.8 * (0.15 / Conc);
+            if(cellRad > 1.2) cellRad = 1.2;
+            if(cellRad < 0.4) cellRad = 0.4;
+            
+            document.getElementById('cell-membrane').setAttribute('radius', cellRad);
+        };
+
+        // 2: DNA
+        let dnaUnzipped = false;
+        window.toggleDNA = function() {
+            dnaUnzipped = !dnaUnzipped;
+            document.getElementById('dna-btn').setAttribute('value', dnaUnzipped ? 'Reform Bonds (Zip)' : 'Heat/Helicase (Unzip)');
+            document.getElementById('stat-2a').setAttribute('value', `State: ${dnaUnzipped ? 'Separated Strands' : 'Double Helix'}`);
+            document.getElementById('stat-2b').setAttribute('value', `Hydrogen Bonds: ${dnaUnzipped ? 'Broken' : 'Intact'}\nA-T (2), C-G (3)`);
+            
+            // Visual trick: hide the crossing rungs, or make them tiny
+            let w = dnaUnzipped ? '0' : '0.6';
+            for(let i=1; i<=5; i++) {
+                document.getElementById('rung'+i).setAttribute('height', w);
+            }
+        };
+
+        // 3: Photosynthesis
+        let lightInt = 50;
+        window.changeLight = function(dir) {
+            lightInt += dir;
+            if(lightInt < 0) lightInt = 0;
+            if(lightInt > 100) lightInt = 100;
+            
+            document.getElementById('stat-3a').setAttribute('value', `Light Intensity: ${lightInt}%`);
+            let gluc = (lightInt/50) * 2.0;
+            let ox = (lightInt/50) * 1.5;
+            document.getElementById('stat-3b').setAttribute('value', `Glucose Yield: ${gluc.toFixed(1)} mg/h\nO2 Yield: ${ox.toFixed(1)} ml/h`);
+            
+            // Visuals
+            let em = lightInt / 100;
+            document.getElementById('sun').setAttribute('material', `emissive: #ffbb00; emissiveIntensity: ${em}`);
+            document.getElementById('sun-ray').setAttribute('opacity', em * 0.6);
+        };
+
+        // 4: Brain
+        window.showBrain = function(lobe) {
+            let func = "";
+            let clr = "";
+            if(lobe==='Frontal') { func="Logic, Planning, Emotion, Motor"; clr="#e63946"; }
+            if(lobe==='Parietal') { func="Sensory processing, Spatial"; clr="#457b9d"; }
+            if(lobe==='Occipital') { func="Visual Processing Core"; clr="#a8dadc"; }
+            if(lobe==='Temporal') { func="Auditory, Memory, Language"; clr="#f4a261"; }
+            if(lobe==='Cerebellum') { func="Motor coordination, Balance"; clr="#2a9d8f"; }
+            
+            document.getElementById('stat-4a').setAttribute('value', `${lobe} Lobe`);
+            document.getElementById('stat-4a').setAttribute('color', clr);
+            document.getElementById('stat-4b').setAttribute('value', `Function:\n${func}`);
+        };
+
+        // Scale Logic
+        let scaleIdx = 4;
+        const scaleMap = [
+            {val: -15, desc: 'Atomic Nucleus'}, {val: -10, desc: 'Atom'}, 
+            {val: -9, desc: 'DNA'}, {val: -6, desc: 'Cell'},
+            {val: 0, desc: 'Human Scale'}, {val: 3, desc: 'City'}, 
+            {val: 9, desc: 'Earth-Moon'}, {val: 12, desc: 'Solar System'},
+            {val: 21, desc: 'Milky Way'}, {val: 24, desc: 'Universe'}
+        ];
+        window.changeScale = function(dir) {
+            scaleIdx += dir;
+            if(scaleIdx < 0) scaleIdx = 0;
+            if(scaleIdx >= scaleMap.length) scaleIdx = scaleMap.length - 1;
+            
+            let item = scaleMap[scaleIdx];
+            document.getElementById('vr-scale-desc').setAttribute('value', `10^${item.val} m\n${item.desc}`);
+
+            let actScale = 1;
+            if (item.val > 0) actScale = 1 + (item.val / 24) * 4; 
+            else if (item.val < 0) actScale = Math.max(0.1, 1 - (Math.abs(item.val) / 15) * 0.9);
+            document.getElementById('vr-wrapper').setAttribute('scale', `${actScale} ${actScale} ${actScale}`);
+        };
+    </script>
+</body>
+</html>
