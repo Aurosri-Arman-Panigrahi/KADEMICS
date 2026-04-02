@@ -1,0 +1,297 @@
+<!-- KADEMICS � nexus.html (CHAT: Real-Time WebSocket Chat) -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KADEMICS � CHAT | Communities</title>
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    .nexus-layout {
+      display:grid;
+      grid-template-columns:280px 1fr;
+      gap:var(--space-md);
+      height:calc(100vh - 70px - var(--space-xl)*2);
+      min-height:500px;
+    }
+    .room-sidebar {
+      background:var(--card-bg); border:var(--cyan-border); border-radius:var(--radius-lg);
+      overflow:hidden; display:flex; flex-direction:column;
+    }
+    .sidebar-header {
+      padding:var(--space-md); border-bottom:1px solid rgba(0,243,255,0.12);
+      font-family:var(--font-head); font-size:0.75rem; letter-spacing:0.2em; color:var(--cyan);
+    }
+    .room-list { flex:1; overflow-y:auto; }
+    .room-item {
+      padding:10px var(--space-md); cursor:pointer; transition:var(--transition);
+      border-bottom:1px solid rgba(0,243,255,0.05); display:flex; align-items:center; gap:10px;
+    }
+    .room-item:hover, .room-item.active { background:var(--cyan-dim); }
+    .room-item .r-name { font-size:0.82rem; font-weight:500; }
+    .room-item .r-sub  { font-size:0.68rem; color:var(--text-dim); }
+    .r-dot { width:8px; height:8px; border-radius:50%; background:var(--neon-green); box-shadow:var(--green-glow); flex-shrink:0; }
+
+    .chat-panel {
+      background:var(--card-bg); border:var(--cyan-border); border-radius:var(--radius-lg);
+      display:flex; flex-direction:column; overflow:hidden;
+    }
+    .chat-header {
+      padding:var(--space-md); border-bottom:1px solid rgba(0,243,255,0.12);
+      display:flex; align-items:center; justify-content:space-between;
+    }
+    .chat-room-name { font-family:var(--font-head); font-size:0.85rem; color:var(--cyan); }
+    .online-count   { font-size:0.7rem; color:var(--neon-green); }
+
+    .chat-messages  { flex:1; overflow-y:auto; padding:var(--space-md); display:flex; flex-direction:column; gap:var(--space-sm); }
+    .msg-row        { display:flex; gap:8px; }
+    .msg-row.self   { flex-direction:row-reverse; }
+
+    .chat-input-bar {
+      padding:var(--space-md); border-top:1px solid rgba(0,243,255,0.12);
+      display:grid; grid-template-columns:1fr auto auto; gap:var(--space-sm); align-items:end;
+    }
+    .chat-input {
+      background:rgba(0,243,255,0.04); border:1px solid rgba(0,243,255,0.2);
+      color:var(--text-primary); font-family:var(--font-body); font-size:0.85rem;
+      padding:10px 14px; border-radius:var(--radius-md); outline:none; resize:none;
+      min-height:42px; max-height:120px; transition:var(--transition);
+    }
+    .chat-input:focus { border-color:var(--cyan); box-shadow:0 0 0 2px rgba(0,243,255,0.1); }
+
+    .no-room-selected {
+      flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+      color:var(--text-dim); gap:var(--space-md);
+    }
+
+    @media(max-width:768px){
+      .nexus-layout{ grid-template-columns:1fr; height:auto; }
+      .room-sidebar { height:200px; }
+    }
+  </style>
+</head>
+<body>
+<nav class="nav">
+  <a class="nav-left" href="dashboard.html"><img src="assets/logo.png" alt="KADEMICS" class="logo-img"><span class="brand-name">KADEMICS</span></a>
+  <div class="nav-search" style="position:relative">
+    <i class="fa fa-search search-icon"></i>
+    <input type="text" id="nav-search-input" placeholder="SCANNING NEXUS...">
+    <div class="search-scanning-line"></div>
+    <div class="search-results-dropdown" id="search-results-dropdown"></div>
+  </div>
+  <div class="nav-right">
+    <nav class="nav-links">
+      <a class="nav-link" href="archive.html"><i class="fa fa-folder"></i> Notes</a>
+      <a class="nav-link" href="oracle.html"><i class="fa fa-star"></i> Rating</a>
+      <a class="nav-link" href="gauntlet.html"><i class="fa fa-gamepad"></i> Quizzing</a>
+      <a class="nav-link active" href="nexus.html"><i class="fa fa-comments"></i> Chat</a>
+    </nav>
+    <div class="profile-disk" id="profile-disk" style="position:relative;cursor:pointer" title="View Profile" onclick="window.location.href=window.location.href.replace(/[^/]*$/, '')+'profile.html'">
+      <img id="nav-avatar" src="assets/avatar-default.png" alt="Profile">
+      <div class="status-ring"></div>
+    </div>
+  </div>
+</nav>
+
+<div class="main-content" style="padding-top:70px">
+  <div style="padding:var(--space-md) var(--space-lg)">
+    <p class="section-title">[ CHAT ]</p>
+    <div class="nexus-layout">
+
+      <!-- Room Sidebar -->
+      <div class="room-sidebar">
+        <div class="sidebar-header"><i class="fa fa-satellite-dish"></i> &nbsp; ACTIVE CHANNELS</div>
+        <div class="room-list" id="room-list">
+          <div class="loading" style="padding:var(--space-md)"><div class="spinner"></div>&nbsp;</div>
+        </div>
+        <div style="padding:var(--space-md);border-top:1px solid rgba(0,243,255,0.1)">
+          <div class="room-item" id="room-general" onclick="joinRoom('general','General Discussion')">
+            <div class="r-dot"></div>
+            <div><div class="r-name">general</div><div class="r-sub">All topics</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chat Panel -->
+      <div class="chat-panel">
+        <div class="chat-header">
+          <div>
+            <div class="chat-room-name" id="chat-room-name">[ SELECT A CHANNEL ]</div>
+            <div class="online-count" id="chat-online">? NEXUS ONLINE</div>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="showUploadPop()"><i class="fa fa-paperclip"></i></button>
+        </div>
+
+        <div id="no-room" class="no-room-selected">
+          <i class="fa fa-satellite-dish" style="font-size:3rem;color:rgba(0,243,255,0.2)"></i>
+          <p style="font-size:0.85rem">Select a channel to begin transmitting</p>
+        </div>
+
+        <div id="chat-messages" class="chat-messages" style="display:none"></div>
+
+        <div class="chat-input-bar" id="chat-input-bar" style="display:none">
+          <textarea class="chat-input" id="chat-input" rows="1" placeholder="TRANSMIT MESSAGE..."
+                    onkeydown="handleKey(event)"></textarea>
+          <button class="btn btn-ghost btn-sm" onclick="showEmojiPop()" title="Emoji">??</button>
+          <button class="btn btn-primary btn-sm" onclick="sendMessage()">
+            <i class="fa fa-paper-plane"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="toast-container" id="toast-container"></div>
+
+<script type="module">
+import { requireAuth, initProfileUI } from './js/auth.js';
+import { initSearch } from './js/search.js';
+import { API } from './js/api.js';
+
+const user = await requireAuth();
+
+initProfileUI(user);
+initSearch();
+
+let ws              = null;
+let activeRoom      = null;
+let activeRoomName  = null;
+
+window.joinRoom    = joinRoom;
+window.sendMessage = sendMessage;
+window.handleKey   = handleKey;
+window.showUploadPop = () => showToast('info','File sharing coming soon!');
+window.showEmojiPop  = () => showToast('info','Emojis coming soon!');
+
+// Connect WebSocket
+function connectWS() {
+  const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
+  ws = new WebSocket(`${protocol}://${location.host}/ws/chat`);
+
+  ws.onmessage = (evt) => {
+    try {
+      const msg = JSON.parse(evt.data);
+      if (msg.room === activeRoom || !msg.room) {
+        appendMessage(msg.sender||msg.roll||'Unknown', msg.content||'', msg.roll===user.roll, msg.type);
+      }
+    } catch(e){}
+  };
+
+  ws.onerror = ()=> showToast('error','WebSocket connection lost');
+  ws.onclose = ()=> setTimeout(connectWS, 3000); /* Auto-reconnect */
+}
+
+async function joinRoom(roomId, roomName) {
+  activeRoom     = roomId;
+  activeRoomName = roomName;
+
+  // UI Switch
+  document.getElementById('no-room').style.display          = 'none';
+  document.getElementById('chat-messages').style.display    = 'flex';
+  document.getElementById('chat-input-bar').style.display   = 'grid';
+  document.getElementById('chat-room-name').textContent     = `# ${roomId}`;
+
+  // Mark active room
+  document.querySelectorAll('.room-item').forEach(el => el.classList.remove('active'));
+  document.getElementById(`room-${roomId}`)?.classList.add('active');
+
+  // Clear messages and load history
+  const msgArea = document.getElementById('chat-messages');
+  msgArea.innerHTML = '<div class="loading" style="margin:auto"><div class="spinner"></div></div>';
+
+  try {
+    const history = await API.getChatHistory(roomId);
+    msgArea.innerHTML = '';
+    if (Array.isArray(history)) {
+      history.forEach(m => appendMessage(m.sender_name||m.roll,'',m.roll===user.roll,'text',m.content));
+    }
+  } catch(e) { msgArea.innerHTML = ''; }
+
+  scrollToBottom();
+
+  // Tell server we joined
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({ type:'join', roll:user.roll, room:roomId }));
+  }
+}
+
+function appendMessage(sender, content, isSelf, type='text', text=null) {
+  if (type !== 'text' && type !== 'join') return;
+  const msgText = text || content;
+  if (!msgText) return;
+
+  const msgArea = document.getElementById('chat-messages');
+  const row = document.createElement('div');
+  row.className = `msg-row ${isSelf ? 'self' : ''}`;
+  row.innerHTML = `
+    <div class="message-bubble ${isSelf ? 'mine' : 'theirs'}">
+      ${!isSelf ? `<div class="msg-sender">${escHtml(sender)}</div>` : ''}
+      ${escHtml(msgText)}
+      <div class="msg-time">${new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}</div>
+    </div>`;
+  msgArea.appendChild(row);
+  scrollToBottom();
+}
+
+function scrollToBottom() {
+  const m = document.getElementById('chat-messages');
+  m.scrollTop = m.scrollHeight;
+}
+
+function sendMessage() {
+  const input = document.getElementById('chat-input');
+  const msg   = input.value.trim();
+  if (!msg || !activeRoom || !ws || ws.readyState !== WebSocket.OPEN) return;
+
+  ws.send(JSON.stringify({
+    type:    'text',
+    content: msg,
+    roll:    user.roll,
+    room:    activeRoom
+  }));
+  appendMessage(user.name, msg, true, 'text', msg);
+  input.value = '';
+}
+
+function handleKey(e) {
+  if (e.key==='Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+}
+
+async function loadRooms() {
+  const list = document.getElementById('room-list');
+  list.innerHTML = '';
+  let rooms = [];
+  try { rooms = await API.getNexusRooms()||[]; } catch(e){ rooms=[]; }
+  rooms.forEach(r => {
+    const div = document.createElement('div');
+    div.className = 'room-item';
+    div.id = `room-${r.room}`;
+    div.onclick = () => joinRoom(r.room, r.teacher);
+    div.innerHTML = `
+      <div class="r-dot"></div>
+      <div>
+        <div class="r-name">${escHtml(r.teacher)}</div>
+        <div class="r-sub">${escHtml(r.subject)}</div>
+      </div>`;
+    list.appendChild(div);
+  });
+}
+
+function showToast(type, msg) {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast toast-${type}`;
+  t.innerHTML = `<i class="fa fa-${type==='success'?'check':type==='error'?'times':'info-circle'}"></i> ${msg}`;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 4000);
+}
+function escHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+connectWS();
+loadRooms();
+</script>
+</body>
+</html>

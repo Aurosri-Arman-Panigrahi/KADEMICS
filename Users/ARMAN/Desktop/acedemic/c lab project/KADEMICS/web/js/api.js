@@ -94,6 +94,17 @@ const MOCK = {
       { id:6,  title:'Matrices & Determinants - Full Notes', uploader:'Rohit D.', date:'2025-09-15', url:'' },
       { id:7,  title:'Calculus - Limits & Derivatives',      uploader:'Ananya B.', date:'2025-10-05', url:'' },
     ],
+    3:  [
+      { id:10, title:'PPS C Course Handout',                 uploader:'Admin',    date:'2025-08-10', url:'' },
+      { id:11, title:'Strings Mid Sem Questions',            uploader:'Aryan P.', date:'2025-10-09', url:'' },
+    ],
+    4:  [
+      { id:12, title:'Math 1 Integration Formulas Cheat Sheet',uploader:'Rahul S.', date:'2025-01-05', url:'' },
+      { id:13, title:'Differential Equations Chapter 3',       uploader:'Sunil Y.', date:'2025-02-12', url:'' },
+    ],
+    5:  [
+      { id:14, title:'Electrical Engineering Kirchhoff Laws',  uploader:'Meera P.', date:'2025-04-03', url:'' },
+    ],
     20: [
       { id:8,  title:'CNN Architectures - ResNet, VGG, YOLO', uploader:'Dev T.', date:'2026-01-10', url:'' },
       { id:9,  title:'Transformers & Attention Mechanism',     uploader:'Mira K.', date:'2026-01-22', url:'' },
@@ -199,7 +210,8 @@ async function isServerUp() {
   if (_serverMode !== null) return _serverMode;
   try {
     const res = await fetch('/api/ping', { signal: AbortSignal.timeout(800) });
-    _serverMode = res.ok;
+    const text = await res.text();
+    _serverMode = !!JSON.parse(text).success;
   } catch {
     _serverMode = false;
   }
@@ -410,16 +422,23 @@ export const API = {
   async search(query) {
     if (await isServerUp()) return (await fetch(`/api/search?q=${encodeURIComponent(query)}`)).json();
     const q = query.toLowerCase();
-    const results = [];
+    
+    // Create new structure matching what the C backend would return
+    const archive = [];
+    const oracle = [];
+    const gauntlet = [];
+    const nexus = [];
+    
     MOCK.oracleTeachers.filter(t => t.name.toLowerCase().includes(q)).forEach(t =>
-      results.push({ type:'ORACLE', title:t.name, subtitle:`Rating: ${t.avg_rating}/5`, link:`teacher-dossier.html?id=${t.id}` }));
+      oracle.push({ section:'oracle', name:t.name, id:t.id }));
     MOCK.quizzes.filter(qz => qz.title.toLowerCase().includes(q) || qz.subject.toLowerCase().includes(q)).forEach(qz =>
-      results.push({ type:'GAUNTLET', title:qz.title, subtitle:qz.subject, link:'gauntlet.html' }));
+      gauntlet.push({ section:'gauntlet', name:qz.title, status:qz.status }));
     MOCK.nexusRooms.filter(r => r.teacher.toLowerCase().includes(q) || r.subject.toLowerCase().includes(q)).forEach(r =>
-      results.push({ type:'NEXUS', title:r.teacher, subtitle:r.subject, link:'nexus.html' }));
+      nexus.push({ section:'nexus', name:r.teacher, subject:r.subject }));
     Object.values(MOCK.notes).flat().filter(n => n.title.toLowerCase().includes(q)).forEach(n =>
-      results.push({ type:'ARCHIVE', title:n.title, subtitle:`Uploaded: ${n.date}`, link:'archive.html' }));
-    return mockDelay({ results: results.slice(0,8) });
+      archive.push({ section:'archive', type:'note', name:n.title }));
+      
+    return mockDelay({ archive, oracle, gauntlet, nexus });
   },
 };
 

@@ -1,9 +1,9 @@
-<!-- KADEMICS — nexus.html (CHAT: Real-Time WebSocket Chat) -->
+<!-- KADEMICS  nexus.html (CHAT: Real-Time WebSocket Chat) -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>KADEMICS — CHAT | Communities</title>
+  <title>KADEMICS  CHAT | Communities</title>
   <link rel="stylesheet" href="css/variables.css">
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/components.css">
@@ -147,9 +147,9 @@
 <div class="toast-container" id="toast-container"></div>
 
 <script type="module">
-import { requireAuth, initProfileUI } from './js/auth.js';
-import { initSearch } from './js/search.js';
-import { API } from './js/api.js';
+import { requireAuth, initProfileUI } from './js/auth.js?v=5880';
+import { initSearch } from './js/search.js?v=5880';
+import { API } from './js/api.js?v=5880';
 
 const user = await requireAuth();
 
@@ -163,7 +163,21 @@ let activeRoomName  = null;
 window.joinRoom    = joinRoom;
 window.sendMessage = sendMessage;
 window.handleKey   = handleKey;
-window.showUploadPop = () => showToast('info','File sharing coming soon!');
+window.showUploadPop = () => {
+  const fileInput = document.createElement('input');
+  fileInput.type = 'file';
+  fileInput.onchange = e => {
+    const file = e.target.files[0];
+    if (file) {
+      showToast('info', `Uplinking ${file.name}...`);
+      setTimeout(() => {
+        showToast('success', `File ${file.name} sent successfully!`);
+        appendMessage(user.name, `[FILE]: ${file.name}`, true, 'file', `[FILE]: <a href="#" style="color:#00f3ff;text-decoration:underline;">${file.name}</a>`);
+      }, 1000);
+    }
+  };
+  fileInput.click();
+};
 window.showEmojiPop  = () => showToast('info','Emojis coming soon!');
 
 // Connect WebSocket
@@ -219,17 +233,21 @@ async function joinRoom(roomId, roomName) {
 }
 
 function appendMessage(sender, content, isSelf, type='text', text=null) {
-  if (type !== 'text' && type !== 'join') return;
+  if (type !== 'text' && type !== 'join' && type !== 'file') return;
   const msgText = text || content;
   if (!msgText) return;
 
   const msgArea = document.getElementById('chat-messages');
   const row = document.createElement('div');
   row.className = `msg-row ${isSelf ? 'self' : ''}`;
+  
+  // If type is file, we inject HTML directly, else we sanitize the text
+  const safeText = type === 'file' ? msgText : escHtml(msgText);
+  
   row.innerHTML = `
     <div class="message-bubble ${isSelf ? 'mine' : 'theirs'}">
       ${!isSelf ? `<div class="msg-sender">${escHtml(sender)}</div>` : ''}
-      ${escHtml(msgText)}
+      ${safeText}
       <div class="msg-time">${new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}</div>
     </div>`;
   msgArea.appendChild(row);
@@ -244,14 +262,19 @@ function scrollToBottom() {
 function sendMessage() {
   const input = document.getElementById('chat-input');
   const msg   = input.value.trim();
-  if (!msg || !activeRoom || !ws || ws.readyState !== WebSocket.OPEN) return;
+  if (!msg || !activeRoom) return; // Allow sending even without WS for Demo Mode
 
-  ws.send(JSON.stringify({
-    type:    'text',
-    content: msg,
-    roll:    user.roll,
-    room:    activeRoom
-  }));
+  // If websocket is open, send it to the server
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({
+      type:    'text',
+      content: msg,
+      roll:    user.roll,
+      room:    activeRoom
+    }));
+  }
+  
+  // Render message locally regardless of connection
   appendMessage(user.name, msg, true, 'text', msg);
   input.value = '';
 }

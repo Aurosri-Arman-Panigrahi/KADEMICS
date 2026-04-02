@@ -68,7 +68,8 @@ function renderSearchResults(dropdown, data, query) {
   const allResults = [
     ...(data.archive  || []),
     ...(data.oracle   || []),
-    ...(data.gauntlet || [])
+    ...(data.gauntlet || []),
+    ...(data.nexus    || [])
   ];
 
   if (allResults.length === 0) {
@@ -110,6 +111,11 @@ function renderSearchResults(dropdown, data, query) {
         icon  = '🎮';
         color = item.status === 'LIVE' ? 'var(--laser-red)' : 'var(--warning)';
         link  = '/gauntlet.html';
+        break;
+      case 'nexus':
+        icon  = '💬';
+        color = 'var(--neon-green)';
+        link  = '/nexus.html';
         break;
     }
 
