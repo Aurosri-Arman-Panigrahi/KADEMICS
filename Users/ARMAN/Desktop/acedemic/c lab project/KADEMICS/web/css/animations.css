@@ -1,0 +1,215 @@
+/* ============================================================
+   KADEMICS — animations.css
+   Sci-Fi Animations: Glow, Glitch, Pulse, Scan, Typewriter
+   ============================================================ */
+
+/* ── Keyframes ───────────────────────────────────────────── */
+
+@keyframes pulse-ring {
+  0%   { box-shadow: 0 0 0 0 rgba(0,243,255,0.5); opacity: 1; }
+  70%  { box-shadow: 0 0 0 8px rgba(0,243,255,0);  opacity: 0.8; }
+  100% { box-shadow: 0 0 0 0 rgba(0,243,255,0);    opacity: 1; }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.4; transform: scale(1.3); }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(0,243,255,0.4); }
+  50%       { box-shadow: 0 0 20px rgba(0,243,255,0.8), 0 0 40px rgba(0,243,255,0.3); }
+}
+
+@keyframes glitch {
+  0%   { transform: translate(0); }
+  20%  { transform: translate(-2px, 1px); clip-path: inset(40% 0 10% 0); }
+  40%  { transform: translate(2px, -1px); clip-path: inset(60% 0 5% 0); }
+  60%  { transform: translate(-1px, 2px); clip-path: inset(20% 0 40% 0); }
+  80%  { transform: translate(1px, -2px); clip-path: inset(70% 0 10% 0); }
+  100% { transform: translate(0); clip-path: none; }
+}
+
+@keyframes scan-line {
+  0%   { top: -2px; opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+
+@keyframes flicker {
+  0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% { opacity: 1; }
+  20%, 24%, 55%                           { opacity: 0.4; }
+}
+
+@keyframes typewriter {
+  from { width: 0; }
+  to   { width: 100%; }
+}
+
+@keyframes blink-caret {
+  from, to { border-color: transparent; }
+  50%       { border-color: var(--cyan); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from { transform: translateY(20px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+@keyframes slide-in-right {
+  from { transform: translateX(30px); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+
+@keyframes fade-out {
+  from { opacity: 1; transform: translateX(0); }
+  to   { opacity: 0; transform: translateX(-20px); }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-8px); }
+}
+
+@keyframes star-field {
+  from { transform: translateY(0); }
+  to   { transform: translateY(-100px); }
+}
+
+@keyframes border-rotate {
+  0%   { --angle: 0deg; }
+  100% { --angle: 360deg; }
+}
+
+/* ── Reusable Animation Classes ──────────────────────────── */
+
+.animate-fade-in   { animation: fade-in 0.4s ease forwards; }
+.animate-slide-up  { animation: slide-up 0.4s ease forwards; }
+.animate-float     { animation: float 4s ease-in-out infinite; }
+
+/* Staggered card entry */
+.card-stagger > *:nth-child(1) { animation: slide-up 0.3s ease 0s    both; }
+.card-stagger > *:nth-child(2) { animation: slide-up 0.3s ease 0.05s both; }
+.card-stagger > *:nth-child(3) { animation: slide-up 0.3s ease 0.1s  both; }
+.card-stagger > *:nth-child(4) { animation: slide-up 0.3s ease 0.15s both; }
+.card-stagger > *:nth-child(5) { animation: slide-up 0.3s ease 0.2s  both; }
+.card-stagger > *:nth-child(6) { animation: slide-up 0.3s ease 0.25s both; }
+
+/* Glow pulsing button */
+.btn-glow-pulse { animation: glow-pulse 2s ease-in-out infinite; }
+
+/* Live indicator */
+.pulse-live {
+  animation: pulse-dot 1.2s ease-in-out infinite;
+}
+
+/* Scan line effect on elements */
+.scan-effect {
+  position: relative;
+  overflow: hidden;
+}
+.scan-effect::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(0,243,255,0.6), transparent);
+  box-shadow: 0 0 8px var(--cyan);
+  animation: scan-line 3s linear infinite;
+  pointer-events: none;
+}
+
+/* Glitch text effect */
+.glitch {
+  position: relative;
+  animation: flicker 5s infinite;
+}
+.glitch::before,
+.glitch::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+}
+.glitch::before {
+  color: #0ff;
+  animation: glitch 3s infinite;
+  clip-path: polygon(0 0, 100% 0, 100% 35%, 0 35%);
+  transform: translate(-2px, 0);
+  opacity: 0.5;
+}
+.glitch::after {
+  color: #f0f;
+  animation: glitch 2.5s infinite reverse;
+  clip-path: polygon(0 65%, 100% 65%, 100% 100%, 0 100%);
+  transform: translate(2px, 0);
+  opacity: 0.5;
+}
+
+/* Typewriter effect for text */
+.typewriter {
+  overflow: hidden;
+  white-space: nowrap;
+  border-right: 2px solid var(--cyan);
+  animation:
+    typewriter 2s steps(40, end) forwards,
+    blink-caret 0.75s step-end infinite;
+}
+
+/* Glow hover class */
+.glow-hover {
+  transition: var(--transition);
+}
+.glow-hover:hover {
+  box-shadow: var(--cyan-glow);
+  border-color: var(--cyan) !important;
+}
+
+/* Shimmer loading placeholder */
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(0,243,255,0.03) 25%,
+    rgba(0,243,255,0.08) 50%,
+    rgba(0,243,255,0.03) 75%
+  );
+  background-size: 400% 100%;
+  animation: shimmer-slide 1.5s ease-in-out infinite;
+}
+@keyframes shimmer-slide {
+  0%   { background-position: 100% 50%; }
+  100% { background-position: 0%   50%; }
+}
+
+/* Hex node decorative dots */
+.hex-dot {
+  width: 6px; height: 6px;
+  background: var(--cyan);
+  clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+  box-shadow: 0 0 6px var(--cyan);
+}
+
+/* Corner decorations on featured cards */
+.corner-deco::before,
+.corner-deco::after {
+  content: '';
+  position: absolute;
+  width: 12px; height: 12px;
+  border-color: var(--cyan);
+  border-style: solid;
+}
+.corner-deco::before {
+  top: 8px; left: 8px;
+  border-width: 2px 0 0 2px;
+}
+.corner-deco::after {
+  bottom: 8px; right: 8px;
+  border-width: 0 2px 2px 0;
+}

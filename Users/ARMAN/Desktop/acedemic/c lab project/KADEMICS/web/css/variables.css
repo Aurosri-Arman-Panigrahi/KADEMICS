@@ -1,0 +1,66 @@
+/* ============================================================
+   KADEMICS — variables.css
+   Sci-Fi Design Tokens: Colors, Fonts, Spacing
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=JetBrains+Mono:wght@300;400;500;700&display=swap');
+
+:root {
+  /* ── Color Palette ─────────────────────────────────── */
+  --void:           #050508;
+  --void-2:         #0a0b14;
+  --void-3:         #0d1020;
+
+  --cyan:           #00f3ff;
+  --cyan-dim:       rgba(0, 243, 255, 0.15);
+  --cyan-glow:      0 0 8px #00f3ff, 0 0 25px rgba(0,243,255,0.4);
+  --cyan-border:    1px solid rgba(0, 243, 255, 0.4);
+
+  --violet:         #bc13fe;
+  --violet-dim:     rgba(188, 19, 254, 0.15);
+  --violet-glow:    0 0 8px #bc13fe, 0 0 25px rgba(188,19,254,0.4);
+
+  --laser-red:      #ff003c;
+  --laser-red-dim:  rgba(255, 0, 60, 0.15);
+  --laser-red-glow: 0 0 8px #ff003c, 0 0 20px rgba(255,0,60,0.4);
+
+  --neon-green:     #39ff14;
+  --green-dim:      rgba(57, 255, 20, 0.15);
+  --green-glow:     0 0 8px #39ff14, 0 0 20px rgba(57,255,20,0.4);
+
+  --warning:        #ff8c00;
+  --warning-dim:    rgba(255, 140, 0, 0.15);
+
+  --glass:          rgba(0, 243, 255, 0.04);
+  --glass-2:        rgba(255, 255, 255, 0.03);
+  --card-bg:        rgba(10, 11, 20, 0.85);
+
+  --text-primary:   #e8f4ff;
+  --text-secondary: rgba(232, 244, 255, 0.6);
+  --text-dim:       rgba(232, 244, 255, 0.35);
+
+  /* ── Typography ────────────────────────────────────── */
+  --font-head: 'Orbitron', 'Courier New', monospace;
+  --font-body: 'JetBrains Mono', 'Courier New', monospace;
+
+  /* ── Spacing Scale ─────────────────────────────────── */
+  --space-xs:  4px;
+  --space-sm:  8px;
+  --space-md:  16px;
+  --space-lg:  24px;
+  --space-xl:  40px;
+  --space-2xl: 64px;
+
+  /* ── Border Radius ─────────────────────────────────── */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  /* ── Transitions ───────────────────────────────────── */
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ── Z-Index ───────────────────────────────────────── */
+  --z-nav:    1000;
+  --z-modal:  2000;
+  --z-toast:  3000;
+}

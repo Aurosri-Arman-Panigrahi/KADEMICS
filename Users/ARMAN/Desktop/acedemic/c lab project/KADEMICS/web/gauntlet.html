@@ -1,0 +1,463 @@
+<!-- KADEMICS — gauntlet.html (QUIZZING: Proctored Quiz Hub) -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KADEMICS — QUIZZING | Quizzes</title>
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    .quiz-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:var(--space-lg); }
+    .quiz-enter-form {
+      max-width:480px; margin: 0 auto;
+      background:var(--card-bg); border:var(--cyan-border); border-radius:var(--radius-lg);
+      padding:var(--space-xl);
+    }
+    .quiz-in-progress { display:none; }
+    .option-btn {
+      width:100%; text-align:left; padding:12px 16px; margin-bottom:var(--space-sm);
+      background:rgba(0,243,255,0.04); border:1px solid rgba(0,243,255,0.2);
+      border-radius:var(--radius-md); color:var(--text-primary); font-family:var(--font-body);
+      font-size:0.85rem; cursor:pointer; transition:var(--transition);
+    }
+    .option-btn:hover   { background:var(--cyan-dim); border-color:var(--cyan); }
+    .option-btn.selected{
+      background:rgba(0,243,255,0.15); border-color:var(--cyan);
+      color:var(--cyan); box-shadow:0 0 12px rgba(0,243,255,0.2);
+    }
+    .timer-bar {
+      height:4px; background:rgba(0,243,255,0.1); border-radius:2px; overflow:hidden;
+      margin-bottom:var(--space-lg);
+    }
+    .timer-fill {
+      height:100%;
+      background:linear-gradient(90deg,var(--cyan),var(--violet));
+      transition:width 1s linear;
+    }
+    .proctor-hud {
+      background:rgba(255,0,60,0.08); border:1px solid rgba(255,0,60,0.3);
+      border-radius:var(--radius-md); padding:8px 16px;
+      font-size:0.72rem; letter-spacing:0.1em; color:var(--laser-red);
+      display:flex; justify-content:space-between; align-items:center;
+      margin-bottom:var(--space-md);
+    }
+    .flash-red { animation:flash-red 0.3s ease forwards; }
+    @keyframes flash-red {
+      0%,100%{ box-shadow:none; }
+      50%{ box-shadow:0 0 20px rgba(255,0,60,0.6); }
+    }
+  </style>
+</head>
+<body>
+<nav class="nav">
+  <a class="nav-left" href="dashboard.html"><img src="assets/logo.png" alt="KADEMICS" class="logo-img"><span class="brand-name">KADEMICS</span></a>
+  <div class="nav-search" style="position:relative">
+    <i class="fa fa-search search-icon"></i>
+    <input type="text" id="nav-search-input" placeholder="SCANNING NEXUS...">
+    <div class="search-scanning-line"></div>
+    <div class="search-results-dropdown" id="search-results-dropdown"></div>
+  </div>
+  <div class="nav-right">
+    <nav class="nav-links">
+      <a class="nav-link" href="archive.html"><i class="fa fa-folder"></i> Notes</a>
+      <a class="nav-link" href="oracle.html"><i class="fa fa-star"></i> Rating</a>
+      <a class="nav-link active" href="gauntlet.html"><i class="fa fa-gamepad"></i> Quizzing</a>
+      <a class="nav-link" href="nexus.html"><i class="fa fa-comments"></i> Chat</a>
+    </nav>
+    <div class="profile-disk" id="profile-disk" style="position:relative;cursor:pointer" title="View Profile" onclick="window.location.href=window.location.href.replace(/[^/]*$/,'')+'profile.html'">
+      <img id="nav-avatar" src="assets/avatar-default.png" alt="Profile">
+      <div class="status-ring"></div>
+    </div>
+  </div>
+</nav>
+
+<div class="main-content">
+  <div class="page-container">
+
+    <!-- View: Hub ─────────────────────────────────────────────── -->
+    <div id="view-hub">
+      <p class="section-title">[ QUIZZING ]</p>
+      <h2 class="section-heading">Mission Selection</h2>
+
+      <div class="sector-tabs">
+        <button class="sector-tab active" id="tab-all"  onclick="filterQuizzes('ALL')">ALL</button>
+        <button class="sector-tab" id="tab-live"        onclick="filterQuizzes('LIVE')">
+          <span class="live-dot" style="display:inline-block;margin-right:4px"></span>LIVE
+        </button>
+        <button class="sector-tab" id="tab-upcoming"   onclick="filterQuizzes('UPCOMING')">UPCOMING</button>
+        <button class="sector-tab" id="tab-open"       onclick="filterQuizzes('OPEN')">OPEN</button>
+        <button class="sector-tab" id="tab-done"       onclick="filterQuizzes('COMPLETED')">COMPLETED</button>
+      </div>
+
+      <div class="quiz-grid card-stagger" id="quiz-grid">
+        <div class="loading" style="padding:var(--space-xl)"><div class="spinner"></div>&nbsp;LOADING MISSIONS...</div>
+      </div>
+    </div>
+
+    <!-- View: Enter Quiz ──────────────────────────────────────── -->
+    <div id="view-enter" style="display:none">
+      <p class="section-title">[ AUTHENTICATION CHECKPOINT ]</p>
+      <h2 class="section-heading">Access Gauntlet</h2>
+      <div class="quiz-enter-form">
+        <div class="form-group">
+          <label class="form-label"><i class="fa fa-hashtag"></i> QUIZ ID</label>
+          <input class="form-input" id="enter-quiz-id" placeholder="Quiz ID (e.g. 3)">
+        </div>
+        <div class="form-group">
+          <label class="form-label"><i class="fa fa-lock"></i> AUTHENTICATION KEY (Password)</label>
+          <input class="form-input" id="enter-password" type="password" placeholder="Provided by host">
+        </div>
+        <p class="login-error" id="enter-error" style="color:var(--laser-red);font-size:0.75rem;min-height:20px;"></p>
+        <button class="btn btn-primary btn-full" onclick="verifyAndEnter()">
+          <i class="fa fa-bolt"></i> ACCESS GAUNTLET
+        </button>
+        <div style="text-align:center;margin-top:var(--space-md)">
+          <button class="btn btn-ghost btn-sm" onclick="showView('hub')">← Back to Hub</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- View: Quiz In Progress ────────────────────────────────── -->
+    <div id="view-quiz" style="display:none">
+      <p class="section-title">[ MISSION IN PROGRESS ]</p>
+      <div style="max-width:720px;margin:0 auto">
+
+        <!-- Proctor HUD -->
+        <div class="proctor-hud">
+          <span><i class="fa fa-eye"></i> ANTI-CHEAT ACTIVE</span>
+          <span>TAB SWITCHES: <span id="switch-count" style="font-weight:900">0</span></span>
+          <span>TIME: <span id="quiz-timer" style="color:var(--cyan)">—</span></span>
+        </div>
+        <div id="proctor-warning" style="display:none;padding:8px 16px;background:var(--laser-red-dim);border:1px solid var(--laser-red);border-radius:var(--radius-md);color:var(--laser-red);font-size:0.75px;margin-bottom:var(--space-md);letter-spacing:0.05em"></div>
+
+        <div class="timer-bar"><div class="timer-fill" id="timer-fill" style="width:100%"></div></div>
+
+        <div id="question-area">
+          <!-- Question rendered here -->
+        </div>
+
+        <div style="display:flex;justify-content:space-between;margin-top:var(--space-xl)">
+          <button class="btn btn-ghost btn-sm" id="btn-prev" onclick="prevQuestion()"><i class="fa fa-arrow-left"></i> Previous</button>
+          <span id="q-progress" style="font-size:0.75rem;color:var(--text-dim)"></span>
+          <button class="btn btn-primary btn-sm" id="btn-next" onclick="nextQuestion()">Next <i class="fa fa-arrow-right"></i></button>
+        </div>
+        <button class="btn btn-red btn-full" style="margin-top:var(--space-lg)" id="btn-submit-quiz" onclick="submitQuiz()">
+          <i class="fa fa-flag-checkered"></i> SUBMIT MISSION
+        </button>
+      </div>
+    </div>
+
+    <!-- View: Results ────────────────────────────────────────── -->
+    <div id="view-results" style="display:none">
+      <p class="section-title">[ MISSION COMPLETE ]</p>
+      <h2 class="section-heading">Debrief</h2>
+      <div style="max-width:600px;margin:0 auto;text-align:center">
+        <div class="card" style="margin-bottom:var(--space-xl);padding:var(--space-2xl)">
+          <p style="font-size:0.75rem;letter-spacing:0.2em;color:var(--text-dim);margin-bottom:var(--space-sm)">FINAL SCORE</p>
+          <div id="result-score" style="font-family:var(--font-head);font-size:4rem;color:var(--cyan);text-shadow:var(--cyan-glow)">—</div>
+          <p id="result-avg"  style="color:var(--text-dim);font-size:0.8rem;margin-top:var(--space-sm)"></p>
+          <p id="result-switches" style="color:var(--laser-red);font-size:0.8rem;margin-top:4px"></p>
+        </div>
+        <div class="flex gap-md" style="justify-content:center">
+          <button class="btn btn-secondary" onclick="showView('hub')"><i class="fa fa-home"></i> Back to Hub</button>
+          <button class="btn btn-primary" id="btn-view-leaderboard" onclick="viewLeaderboard()"><i class="fa fa-trophy"></i> Leaderboard</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<button class="fab" id="fab-enter-quiz" style="background:var(--laser-red)" title="Enter a Quiz with your Quiz ID">
+  <i class="fa fa-play"></i>
+</button>
+<button class="fab" id="fab-add-quiz" style="bottom:90px;background:rgba(0,243,255,0.18);border:1px solid rgba(0,243,255,0.5)" title="Suggest a Quiz">
+  <i class="fa fa-plus"></i>
+</button>
+
+<!-- Add Quiz Modal -->
+<div class="modal-overlay" id="quiz-suggest-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">SUGGEST A QUIZ / MISSION</span>
+      <button class="modal-close" id="quiz-modal-close"><i class="fa fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:0.75rem;color:var(--cyan);letter-spacing:0.05em;margin-bottom:var(--space-md)">
+        <i class="fa fa-info-circle"></i> &nbsp;Submit a quiz for admin review. Once approved, it will appear in the mission list.
+      </p>
+      <div class="form-group">
+        <label class="form-label"><i class="fa fa-heading"></i> Quiz Title</label>
+        <input class="form-input" id="qs-title" placeholder="e.g. Data Structures MidSem Practice">
+      </div>
+      <div class="form-group">
+        <label class="form-label"><i class="fa fa-book"></i> Subject</label>
+        <input class="form-input" id="qs-subject" placeholder="e.g. Data Structures &amp; Algorithms">
+      </div>
+      <div class="form-group">
+        <label class="form-label"><i class="fa fa-signal"></i> Difficulty</label>
+        <select class="form-input" id="qs-difficulty">
+          <option value="Easy">Easy</option>
+          <option value="Medium" selected>Medium</option>
+          <option value="Hard">Hard</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label"><i class="fa fa-align-left"></i> Description (optional)</label>
+        <textarea class="form-textarea" id="qs-desc" placeholder="Briefly describe what topics the quiz covers..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" id="quiz-modal-cancel">Cancel</button>
+      <button class="btn btn-primary btn-sm" id="quiz-modal-submit"><i class="fa fa-satellite-dish"></i> SUBMIT FOR REVIEW</button>
+    </div>
+  </div>
+</div>
+
+
+<div class="toast-container" id="toast-container"></div>
+
+<script type="module">
+import { requireAuth, initProfileUI } from './js/auth.js';
+import { initSearch } from './js/search.js';
+import { API } from './js/api.js';
+import { getAdminSession, queueRequest } from './js/admin.js';
+import { startProctoring, stopProctoring, getSwitchCount } from './js/proctor.js';
+
+const user = await requireAuth();
+
+initProfileUI(user);
+initSearch();
+
+// ── Set ALL globals so onclick attrs work even during module init ──
+window.showView = showView;
+window.openSuggestQuizModal = () => document.getElementById('quiz-suggest-modal')?.classList.add('open');
+
+// ── FAB bindings (addEventListener as backup) ───────────────────────
+document.getElementById('fab-enter-quiz')?.addEventListener('click', () => showView('enter'));
+
+// + button: admin goes to dashboard, user opens suggestion modal
+const adminSession = getAdminSession();
+document.getElementById('fab-add-quiz')?.addEventListener('click', () => {
+  if (adminSession?.roll) {
+    window.location.href = 'admin-dashboard.html';
+  } else {
+    document.getElementById('quiz-suggest-modal')?.classList.add('open');
+  }
+});
+
+// Quiz suggest modal bindings
+document.getElementById('quiz-modal-close')?.addEventListener('click', () => document.getElementById('quiz-suggest-modal').classList.remove('open'));
+document.getElementById('quiz-modal-cancel')?.addEventListener('click', () => document.getElementById('quiz-suggest-modal').classList.remove('open'));
+document.getElementById('quiz-modal-submit')?.addEventListener('click', () => {
+  const title   = document.getElementById('qs-title')?.value.trim();
+  const subject = document.getElementById('qs-subject')?.value.trim();
+  const diff    = document.getElementById('qs-difficulty')?.value;
+  const desc    = document.getElementById('qs-desc')?.value.trim();
+  if (!title || !subject) { showToast('error', 'Title and Subject are required.'); return; }
+  queueRequest('ADD_QUIZ', { title, subject, difficulty: diff, description: desc, status: 'UPCOMING', host_roll: user.roll }, { roll: user.roll, name: user.name });
+  document.getElementById('quiz-suggest-modal').classList.remove('open');
+  showToast('info', `[QUEUED]: "${title}" submitted for admin review. Check your profile for status.`);
+});
+
+let allQuizzes = [];
+let currentFilter = 'ALL';
+let activeQuizId  = null;
+let questions     = [];
+let answers       = {};
+let currentQ      = 0;
+let timerInterval = null;
+let timeLeft      = 0;
+
+// Global functions for onclick
+window.filterQuizzes  = filterQuizzes;
+window.showView       = showView;
+window.verifyAndEnter = verifyAndEnter;
+window.nextQuestion   = nextQuestion;
+window.prevQuestion   = prevQuestion;
+window.submitQuiz     = submitQuiz;
+window.viewLeaderboard = viewLeaderboard;
+
+async function loadQuizzes() {
+  const grid = document.getElementById('quiz-grid');
+  grid.innerHTML = '<div class="loading"><div class="spinner"></div>&nbsp;SCANNING...</div>';
+  try { allQuizzes = await API.getQuizzes() || []; } catch(e){ allQuizzes=[]; }
+  filterQuizzes(currentFilter);
+}
+
+function filterQuizzes(filter) {
+  currentFilter = filter;
+  document.querySelectorAll('.sector-tab').forEach(t => t.classList.remove('active'));
+  const tabMap = { ALL:'tab-all', LIVE:'tab-live', UPCOMING:'tab-upcoming', OPEN:'tab-open', COMPLETED:'tab-done' };
+  document.getElementById(tabMap[filter])?.classList.add('active');
+
+  const filtered = filter === 'ALL' ? allQuizzes : allQuizzes.filter(q => q.status === filter);
+  renderQuizGrid(filtered);
+}
+
+function renderQuizGrid(items) {
+  const grid = document.getElementById('quiz-grid');
+  if (!items.length) {
+    grid.innerHTML = `<div class="empty-state"><div class="empty-icon">⚔️</div><h3>No missions in this sector</h3></div>`;
+    return;
+  }
+  grid.innerHTML = '';
+  items.forEach(q => {
+    const badgeClass = {LIVE:'badge-live',UPCOMING:'badge-upcoming',COMPLETED:'badge-done',OPEN:'badge-open'}[q.status]||'badge-open';
+    const div = document.createElement('div');
+    div.className = 'card quiz-card';
+    div.innerHTML = `
+      <div class="quiz-status-badge ${badgeClass}">
+        ${q.status==='LIVE'?'<div class="live-dot"></div>':''}
+        ${q.status}
+      </div>
+      <h3 class="card-title" style="margin-bottom:var(--space-sm)">${escHtml(q.title)}</h3>
+      <p class="card-desc"><i class="fa fa-book"></i> ${escHtml(q.subject)}</p>
+      <p class="card-desc" style="margin-top:4px"><i class="fa fa-user"></i> Host: ${escHtml(q.host_roll||'—')}</p>
+      <div style="margin-top:var(--space-md);display:flex;gap:var(--space-sm)">
+        ${q.status==='LIVE'||q.status==='OPEN'
+          ? `<button class="btn btn-primary btn-sm" onclick="openQuiz(${q.id})"><i class="fa fa-play"></i> ENTER</button>`
+          : q.status==='COMPLETED'
+            ? `<button class="btn btn-secondary btn-sm" onclick="viewResults(${q.id})"><i class="fa fa-chart-bar"></i> RESULTS</button>`
+            : `<button class="btn btn-ghost btn-sm" disabled><i class="fa fa-clock"></i> ${escHtml(q.start_time?.substring(0,16)||'SCHEDULED')}</button>`
+        }
+      </div>`;
+    grid.appendChild(div);
+  });
+}
+
+window.openQuiz = function(id) {
+  document.getElementById('enter-quiz-id').value = id;
+  showView('enter');
+};
+
+async function verifyAndEnter() {
+  const quiz_id  = parseInt(document.getElementById('enter-quiz-id').value);
+  const password = document.getElementById('enter-password').value;
+  const errEl    = document.getElementById('enter-error');
+  errEl.textContent = '';
+  if (!quiz_id || !password) { errEl.textContent = 'Please fill all fields'; return; }
+  try {
+    const r = await API.verifyQuiz({quiz_id, password});
+    if (r.success) {
+      await enterQuiz(quiz_id);
+    } else {
+      errEl.textContent = r.message || '[AUTH FAILED]';
+    }
+  } catch(e) { errEl.textContent = '[CONNECTION ERROR]'; }
+}
+
+async function enterQuiz(quiz_id) {
+  activeQuizId = quiz_id;
+  questions = await API.getQuestions(quiz_id);
+  answers   = {};
+  currentQ  = 0;
+
+  startProctoring(quiz_id, user.roll);
+  showView('quiz');
+  renderQuestion();
+  startTimer(questions.length * 90); /* 90 seconds per question */
+}
+
+function renderQuestion() {
+  if (!questions.length) return;
+  const q = questions[currentQ];
+  const total = questions.length;
+  document.getElementById('q-progress').textContent = `Q ${currentQ+1} / ${total}`;
+
+  const optionLetters = ['A','B','C','D'];
+  const opts = [q.option_a, q.option_b, q.option_c, q.option_d];
+
+  const selected = answers[currentQ];
+  const area = document.getElementById('question-area');
+  area.innerHTML = `
+    <div class="card" style="margin-bottom:var(--space-lg)">
+      <p class="card-label">QUESTION ${currentQ+1} — ${q.marks||1} POINT${(q.marks||1)!==1?'S':''}</p>
+      <h3 class="card-title" style="font-family:var(--font-body);letter-spacing:0;font-size:1rem;line-height:1.6">
+        ${escHtml(q.question_text||q.content||q.q||'')}
+      </h3>
+    </div>
+    ${opts.map((opt, i) => opt ? `
+      <button class="option-btn ${selected===optionLetters[i]?'selected':''}"
+              onclick="selectOption('${optionLetters[i]}')">
+        <span style="color:var(--cyan);font-weight:700;margin-right:8px">${optionLetters[i]}.</span>
+        ${escHtml(opt)}
+      </button>` : '').join('')}`;
+}
+
+window.selectOption = function(letter) {
+  answers[currentQ] = letter;
+  renderQuestion();
+};
+
+function nextQuestion() {
+  if (currentQ < questions.length - 1) { currentQ++; renderQuestion(); }
+  else submitQuiz();
+}
+function prevQuestion() {
+  if (currentQ > 0) { currentQ--; renderQuestion(); }
+}
+
+function startTimer(seconds) {
+  timeLeft = seconds;
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    const mins = Math.floor(timeLeft/60); const secs = timeLeft%60;
+    document.getElementById('quiz-timer').textContent = `${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
+    const pct = (timeLeft/seconds)*100;
+    document.getElementById('timer-fill').style.width = `${pct}%`;
+    if (pct < 20) document.getElementById('timer-fill').style.background = 'var(--laser-red)';
+    if (timeLeft <= 0) { clearInterval(timerInterval); submitQuiz(); }
+  }, 1000);
+}
+
+async function submitQuiz() {
+  clearInterval(timerInterval);
+  stopProctoring();
+  const ansStr = questions.map((_,i)=>answers[i]||'').join(',');
+  try {
+    const result = await API.submitQuiz({ quiz_id:activeQuizId, roll:user.roll, answers:ansStr });
+    document.getElementById('result-score').textContent = result.score ?? '—';
+    document.getElementById('result-avg').textContent = `Class Average: ${result.class_avg ?? '—'}`;
+    const sw = getSwitchCount();
+    document.getElementById('result-switches').textContent = sw > 0 ? `⚠ Tab Switches Detected: ${sw}` : '✓ No tab switches detected';
+    showView('results');
+  } catch(e) { showToast('error','Submission failed'); }
+}
+
+window.viewResults = async function(quiz_id) {
+  try {
+    const r = await API.getResults(quiz_id, user.roll);
+    document.getElementById('result-score').textContent = r.results?.[0]?.score ?? '—';
+    document.getElementById('result-avg').textContent = `Class Average: ${r.class_avg ?? '—'}`;
+    showView('results');
+  } catch(e) { showToast('error','Could not load results'); }
+};
+
+function viewLeaderboard() { showToast('info','Leaderboard coming soon!'); }
+
+function showView(v) {
+  ['hub','enter','quiz','results'].forEach(id => {
+    const el = document.getElementById(`view-${id}`);
+    if (el) el.style.display = id===v ? 'block' : 'none';
+  });
+}
+
+function showToast(type, msg) {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast toast-${type}`;
+  t.innerHTML = `<i class="fa fa-${type==='success'?'check':type==='error'?'times':'info-circle'}"></i> ${msg}`;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 4000);
+}
+function escHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+loadQuizzes();
+</script>
+</body>
+</html>

@@ -1,0 +1,362 @@
+<!-- KADEMICS * archive.html (NOTES: Notes 6-Level Drill-Down) -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KADEMICS * NOTES | Notes</title>
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    .level-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:var(--space-lg); }
+    .note-item {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:var(--space-md); background:var(--card-bg); border:var(--cyan-border);
+      border-radius:var(--radius-md); margin-bottom:var(--space-sm); transition:var(--transition);
+    }
+    .note-item:hover { border-color:rgba(0,243,255,0.6); background:rgba(0,243,255,0.04); }
+    .note-meta { font-size:0.72rem; color:var(--text-dim); margin-top:4px; }
+    .note-actions { display:flex; gap:var(--space-sm); flex-shrink:0; }
+    .pdf-icon { font-size:1.5rem; color:var(--laser-red); margin-right:var(--space-md); }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <a class="nav-left" href="dashboard.html"><img src="assets/logo.png" alt="KADEMICS" class="logo-img"><span class="brand-name">KADEMICS</span></a>
+  <div class="nav-search" style="position:relative">
+    <i class="fa fa-search search-icon"></i>
+    <input type="text" id="nav-search-input" placeholder="SCANNING NEXUS...">
+    <div class="search-scanning-line"></div>
+    <div class="search-results-dropdown" id="search-results-dropdown"></div>
+  </div>
+  <div class="nav-right">
+    <nav class="nav-links">
+      <a class="nav-link active" href="archive.html"><i class="fa fa-folder"></i> Notes</a>
+      <a class="nav-link" href="oracle.html"><i class="fa fa-star"></i> Rating</a>
+      <a class="nav-link" href="gauntlet.html"><i class="fa fa-gamepad"></i> Quizzing</a>
+      <a class="nav-link" href="nexus.html"><i class="fa fa-comments"></i> Chat</a>
+    </nav>
+    <div class="profile-disk" id="profile-disk" style="position:relative;cursor:pointer" title="View Profile" onclick="window.location.href=window.location.href.replace(/[^/]*$/, '')+'profile.html'">
+      <img id="nav-avatar" src="assets/avatar-default.png" alt="Profile">
+      <div class="status-ring"></div>
+    </div>
+  </div>
+</nav>
+
+<div class="main-content">
+  <div class="page-container">
+    <p class="section-title">[ NOTES ]</p>
+    <h2 class="section-heading">Select Data Category</h2>
+
+    <!-- Breadcrumb -->
+    <div class="breadcrumb" id="breadcrumb"></div>
+
+    <!-- Cards area -->
+    <div class="level-header">
+      <p id="level-label" class="section-title" style="margin:0">SELECT COURSE</p>
+      <button class="btn btn-violet btn-sm" id="btn-add" onclick="window.openAddModal&&window.openAddModal()">
+        <i class="fa fa-plus"></i> Add
+      </button>
+    </div>
+
+    <div id="cards-area" class="card-grid card-stagger">
+      <div class="card" style="text-align:center;padding:var(--space-2xl)">
+        <div class="spinner" style="margin:0 auto"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FAB (visible when at note level) -->
+<button class="fab" id="fab-upload" style="display:none" onclick="window.openUploadModal&&window.openUploadModal()">
+  <i class="fa fa-upload"></i>
+</button>
+
+<!-- Add Modal -->
+<div class="modal-overlay" id="add-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-title">INITIATING UPLINK PROTOCOL...</span>
+      <button class="modal-close" onclick="closeModal('add-modal')"><i class="fa fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div id="modal-fields"></div>
+      <p class="text-dim" style="font-size:0.72rem;margin-top:var(--space-sm)">
+        All submissions are reviewed before being published.
+      </p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('add-modal')">Cancel</button>
+      <button class="btn btn-green btn-sm" id="btn-modal-submit" onclick="submitAdd()">
+        <i class="fa fa-satellite-dish"></i> TRANSMIT DATA
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Upload Modal -->
+<div class="modal-overlay" id="upload-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">UPLINK FILE * PUBLISH NOTES</span>
+      <button class="modal-close" onclick="closeModal('upload-modal')"><i class="fa fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Note Title</label>
+        <input class="form-input" id="note-title" placeholder="e.g. Unit 1 - Pointers Notes">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Upload PDF File</label>
+        <div class="file-drop" id="file-drop-zone" onclick="document.getElementById('note-file').click()">
+          <div class="drop-icon"><i class="fa fa-file-pdf"></i></div>
+          <p>DROP PDF HERE or CLICK TO BROWSE</p>
+          <p class="text-dim" style="font-size:0.7rem">Only .pdf files accepted</p>
+          <input type="file" id="note-file" accept=".pdf">
+        </div>
+        <p id="file-name" class="text-dim" style="font-size:0.75rem;margin-top:4px"></p>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('upload-modal')">Cancel</button>
+      <button class="btn btn-green btn-sm" onclick="submitUpload()">
+        <i class="fa fa-satellite-dish"></i> TRANSMIT DATA
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast container -->
+<div class="toast-container" id="toast-container"></div>
+
+<script type="module">
+import { requireAuth, initProfileUI } from './js/auth.js';
+import { initSearch } from './js/search.js';
+import { API } from './js/api.js';
+import { queueRequest } from './js/admin.js';
+
+const user = await requireAuth();
+
+initProfileUI(user);
+initSearch();
+
+// ** State **************************************************
+const state = {
+  level: 0,       // 0=course 1=branch 2=year 3=subject 4=teacher 5=notes
+  course_id: null, branch_id: null, year_id: null,
+  subject_id: null, teacher_id: null,
+  breadcrumbs: [{ label:'ARCHIVE', level:0 }]
+};
+
+const LEVEL_LABELS = ['SELECT COURSE','SELECT BRANCH','SELECT YEAR','SELECT SUBJECT','SELECT TEACHER','DATA SHARDS (NOTES)'];
+const ADD_LABELS   = ['Course','Branch','Year','Subject','Teacher','Note'];
+
+// Set ALL functions as window globals (bulletproof approach)
+window.closeModal        = closeModal;
+window.submitAdd         = submitAdd;
+window.submitUpload      = submitUpload;
+window.navigateTo        = navigateTo;
+window.openAddModal      = openAddModal;
+window.openUploadModal   = openUploadModal;
+
+async function loadLevel() {
+  const area = document.getElementById('cards-area');
+  const fab  = document.getElementById('fab-upload');
+  area.innerHTML = '<div class="loading" style="padding:var(--space-xl)"><div class="spinner"></div>&nbsp;DECRYPTING DATA...</div>';
+  document.getElementById('level-label').textContent = LEVEL_LABELS[state.level];
+  fab.style.display = state.level === 5 ? 'flex' : 'none';
+  updateBreadcrumb();
+
+  let items = [];
+  try {
+    switch (state.level) {
+      case 0: items = await API.getCourses();              break;
+      case 1: items = await API.getBranches(state.course_id);  break;
+      case 2: items = await API.getYears(state.branch_id);     break;
+      case 3: items = await API.getSubjects(state.year_id);    break;
+      case 4: items = await API.getTeachers(state.subject_id); break;
+      case 5: items = await API.getNotes(state.teacher_id);    break;
+    }
+  } catch(e) { items=[]; }
+
+  if (state.level < 5) {
+    renderCards(area, items);
+  } else {
+    renderNotes(area, items);
+  }
+}
+
+function renderCards(area, items) {
+  if (!items || items.length === 0) {
+    area.innerHTML = `<div class="empty-state"><div class="empty-icon"><i class="fa fa-folder-open"></i></div><h3>No entries found</h3><p>Click the Add button to submit a new entry.</p></div>`;
+    return;
+  }
+  area.innerHTML = '';
+  area.className = 'card-grid card-stagger';
+  items.forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'card';
+    div.style.cursor = 'pointer';
+    div.innerHTML = `
+      <p class="card-label">${LEVEL_LABELS[state.level]}</p>
+      <h3 class="card-title">${escHtml(item.name)}</h3>
+      ${item.bio  ? `<p class="card-desc">${escHtml(item.bio)}</p>` : ''}
+      ${item.photo ? `<img src="${item.photo}" style="width:60px;height:60px;border-radius:50%;border:2px solid rgba(0,243,255,0.3);object-fit:cover;margin-top:8px">` : ''}
+      <br><button class="btn btn-secondary btn-sm" style="margin-top:var(--space-md)">
+        <i class="fa fa-arrow-right"></i> Open
+      </button>`;
+    div.addEventListener('click', () => drillDown(item));
+    area.appendChild(div);
+  });
+}
+
+function renderNotes(area, items) {
+  area.className = '';
+  if (!items || items.length === 0) {
+    area.innerHTML = `<div class="empty-state"><div class="empty-icon">**</div><h3>No notes uploaded yet</h3><p>Click <strong>+</strong> to publish your notes!</p></div>`;
+    return;
+  }
+  area.innerHTML = '';
+  items.forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'note-item';
+    div.innerHTML = `
+      <div style="display:flex;align-items:center;flex:1">
+        <span class="pdf-icon"><i class="fa fa-file-pdf"></i></span>
+        <div>
+          <div style="font-weight:600;font-size:0.9rem">${escHtml(item.title)}</div>
+          <div class="note-meta">
+            <i class="fa fa-user"></i> ${escHtml(item.uploader||'Unknown')} &nbsp;|&nbsp;
+            <i class="fa fa-calendar"></i> ${item.date ? item.date.substring(0,10) : ''}
+          </div>
+        </div>
+      </div>
+      <div class="note-actions">
+        <a class="btn btn-secondary btn-sm" href="/api/notes/download?id=${item.id}" target="_blank">
+          <i class="fa fa-download"></i> EXTRACT DATA
+        </a>
+        <a class="btn btn-primary btn-sm" href="/api/notes/download?id=${item.id}" target="_blank">
+          <i class="fa fa-eye"></i> VIEW
+        </a>
+      </div>`;
+    area.appendChild(div);
+  });
+}
+
+function drillDown(item) {
+  const bc = state.breadcrumbs;
+  switch (state.level) {
+    case 0: state.course_id  = item.id; bc.push({label:item.name, level:1}); state.level=1; break;
+    case 1: state.branch_id  = item.id; bc.push({label:item.name, level:2}); state.level=2; break;
+    case 2: state.year_id    = item.id; bc.push({label:item.name, level:3}); state.level=3; break;
+    case 3: state.subject_id = item.id; bc.push({label:item.name, level:4}); state.level=4; break;
+    case 4: state.teacher_id = item.id; bc.push({label:item.name, level:5}); state.level=5; break;
+  }
+  loadLevel();
+}
+
+window.navigateTo = function(level) {
+  state.level = level;
+  state.breadcrumbs = state.breadcrumbs.slice(0, level === 0 ? 1 : level + 1);
+  if (level < 5) { updateBreadcrumb(); loadLevel(); }
+};
+
+function updateBreadcrumb() {
+  const bc = document.getElementById('breadcrumb');
+  bc.innerHTML = state.breadcrumbs.map((b, i) =>
+    `<span class="breadcrumb-item${i===state.breadcrumbs.length-1?' active':''}"
+           onclick="navigateTo(${b.level})">${b.label}</span>
+     ${i < state.breadcrumbs.length-1 ? '<span class="breadcrumb-sep">*</span>' : ''}`
+  ).join('');
+}
+
+function openAddModal() {
+  const level = state.level;
+  const label = ADD_LABELS[level];
+  document.getElementById('modal-title').textContent = `SUBMIT ${label.toUpperCase()} REQUEST`;
+  const fields = document.getElementById('modal-fields');
+  fields.innerHTML = `
+    <div style="background:rgba(255,140,0,0.08);border:1px solid rgba(255,140,0,0.3);border-radius:var(--radius-md);padding:10px 14px;font-size:0.72rem;color:var(--warning);margin-bottom:var(--space-md)">
+      <i class="fa fa-clock"></i> &nbsp;Your request will be reviewed by an admin before appearing.
+    </div>
+    <div class="form-group">
+      <label class="form-label">TARGET ${label.toUpperCase()} NAME *</label>
+      <input class="form-input" id="add-name" placeholder="Enter ${label} name">
+    </div>
+    <div class="form-group">
+      <label class="form-label">DESCRIPTION / REASON</label>
+      <textarea class="form-textarea" id="add-desc" placeholder="Why should this be added?"></textarea>
+    </div>`;
+  document.getElementById('add-modal').classList.add('open');
+}
+
+async function submitAdd() {
+  const name = document.getElementById('add-name')?.value.trim();
+  if (!name) { showToast('error','Name cannot be empty'); return; }
+  const desc = document.getElementById('add-desc')?.value.trim()||'';
+
+  const TYPE_MAP = ['ADD_COURSE','ADD_BRANCH','ADD_YEAR','ADD_SUBJECT','ADD_TEACHER'];
+  const payloads = [
+    {name, desc},
+    {name, desc, course_id:state.course_id},
+    {name, branch_id:state.branch_id},
+    {name, year_id:state.year_id},
+    {name, bio:desc, subject_id:state.subject_id}
+  ];
+  const type = TYPE_MAP[state.level];
+  const data = payloads[state.level];
+
+  queueRequest(type, data, {roll:user.roll, name:user.name});
+  closeModal('add-modal');
+  showToast('info', `[NEXUS]: REQUEST QUEUED * Awaiting admin approval. Your submission: "${name}"`);
+}
+
+function openUploadModal() { document.getElementById('upload-modal').classList.add('open'); }
+async function submitUpload() {
+  const title = document.getElementById('note-title')?.value.trim();
+  const file  = document.getElementById('note-file')?.files[0];
+  if (!title) { showToast('error','Title required'); return; }
+  if (!file)  { showToast('error','Select a PDF file, even for demo'); return; }
+
+  // Queue as NOTE request for admin approval
+  // C equivalent: queue_request(TYPE_ADD_NOTE, payload, submitter)
+  queueRequest('ADD_NOTE', {
+    title,
+    teacher_id: state.teacher_id,
+    fileName: file.name,
+    fileSize: file.size,
+    uploader: user.name,
+    date: new Date().toISOString().substring(0,10)
+  }, { roll:user.roll, name:user.name });
+
+  closeModal('upload-modal');
+  showToast('info','[NEXUS]: NOTE REQUEST SUBMITTED * Pending admin approval.');
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function showToast(type, msg) {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast toast-${type}`;
+  t.innerHTML = `<i class="fa fa-${type==='success'?'check':type==='error'?'exclamation-triangle':'info-circle'}"></i> ${msg}`;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 4000);
+}
+
+function escHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// File drop zone
+document.getElementById('note-file')?.addEventListener('change', (e) => {
+  const f = e.target.files[0];
+  if (f) document.getElementById('file-name').textContent = `Selected: ${f.name}`;
+});
+
+loadLevel();
+</script>
+</body>
+</html>

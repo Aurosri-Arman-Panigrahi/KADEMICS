@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KADEMICS — Central Intelligence Nexus | KIIT Academic Platform</title>
+  <meta name="description" content="KADEMICS: The sci-fi themed academic platform for KIIT students. Notes, Communities, Teacher Ratings, and Proctored Quizzes.">
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    /* Login page specific styles */
+    .login-page {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-lg);
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Animated stars */
+    .stars {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .star {
+      position: absolute;
+      background: #fff;
+      border-radius: 50%;
+      animation: float linear infinite;
+    }
+
+    .hero-logo {
+      display: flex;
+      align-items: center;
+      gap: var(--space-lg);
+      margin-bottom: var(--space-xl);
+      animation: slide-up 0.6s ease;
+    }
+
+    .hero-logo-img {
+      width: 90px; height: 90px;
+      filter: drop-shadow(0 0 10px var(--cyan));
+      animation: glow-pulse 3s ease-in-out infinite;
+    }
+
+    .hero-brand {
+      font-family: var(--font-head);
+      font-size: clamp(2rem, 6vw, 4rem);
+      font-weight: 900;
+      color: var(--cyan);
+      letter-spacing: 0.3em;
+      text-shadow: var(--cyan-glow);
+    }
+
+    .hero-tagline {
+      font-size: 0.75rem;
+      letter-spacing: 0.35em;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      text-align: center;
+      margin-bottom: var(--space-2xl);
+      animation: fade-in 1s ease 0.3s both;
+    }
+
+    .login-card {
+      width: 100%;
+      max-width: 440px;
+      animation: slide-up 0.5s ease 0.2s both;
+    }
+
+    .terminal-header {
+      background: rgba(0,243,255,0.06);
+      border-bottom: 1px solid rgba(0,243,255,0.15);
+      padding: 10px var(--space-md);
+      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      color: var(--cyan);
+    }
+    .terminal-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+    }
+    .terminal-dot.red    { background: #ff5f57; }
+    .terminal-dot.yellow { background: #febc2e; }
+    .terminal-dot.green  { background: var(--neon-green); }
+
+    .login-body {
+      background: var(--card-bg);
+      border: var(--cyan-border);
+      border-top: none;
+      border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+      padding: var(--space-xl);
+      backdrop-filter: blur(12px);
+    }
+
+    .login-system-msg {
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
+      color: var(--neon-green);
+      margin-bottom: var(--space-lg);
+      font-family: var(--font-body);
+    }
+    .login-system-msg span { color: var(--cyan); }
+
+    .login-error {
+      font-size: 0.75rem;
+      color: var(--laser-red);
+      min-height: 20px;
+      margin-bottom: var(--space-sm);
+      letter-spacing: 0.05em;
+      text-shadow: 0 0 8px rgba(255,0,60,0.5);
+    }
+
+    .login-loading {
+      display: none;
+      align-items: center;
+      gap: var(--space-sm);
+      color: var(--cyan);
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+      margin-top: var(--space-sm);
+    }
+
+    .sector-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--space-md);
+      margin-top: var(--space-2xl);
+      max-width: 600px;
+      animation: fade-in 0.6s ease 0.5s both;
+    }
+    .sector-card {
+      padding: var(--space-md);
+      background: rgba(0,243,255,0.03);
+      border: 1px solid rgba(0,243,255,0.12);
+      border-radius: var(--radius-md);
+      text-align: center;
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      color: var(--text-dim);
+    }
+    .sector-card .s-icon { font-size: 1.5rem; margin-bottom: 6px; }
+    .sector-card .s-name { color: var(--cyan); font-size: 0.68rem; }
+  </style>
+</head>
+<body>
+
+<!-- Animated Stars -->
+<div class="stars" id="stars-container"></div>
+
+<main class="login-page">
+
+  <!-- Logo + Brand -->
+  <div class="hero-logo">
+    <img src="assets/logo.png" alt="KADEMICS" class="hero-logo-img">
+    <div class="hero-brand" data-text="KADEMICS">KADEMICS</div>
+  </div>
+
+  <p class="hero-tagline">
+    CENTRAL INTELLIGENCE NEXUS &nbsp;·&nbsp; KIIT ACADEMIC PLATFORM &nbsp;·&nbsp; v1.0.0
+  </p>
+
+  <!-- Login Terminal Card -->
+  <div class="login-card scan-effect">
+    <div class="terminal-header">
+      <div class="terminal-dot red"></div>
+      <div class="terminal-dot yellow"></div>
+      <div class="terminal-dot green"></div>
+      <span style="margin-left:8px">UPLINK AUTHENTICATION TERMINAL</span>
+    </div>
+    <div class="login-body">
+      <p class="login-system-msg">
+        [<span>SYSTEM</span>]: WELCOME TO KADEMICS.<br>
+        AUTHENTICATION REQUIRED.<br>
+        USE YOUR <span>@kiit.ac.in</span> EMAIL TO PROCEED.
+      </p>
+
+      <div class="form-group">
+        <label class="form-label" for="login-name">
+          <i class="fa fa-user"></i> &nbsp; IDENTITY DESIGNATION (Name)
+        </label>
+        <input class="form-input" id="login-name" type="text"
+               placeholder="e.g. Arman Panigrahi" autocomplete="name">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="login-email">
+          <i class="fa fa-at"></i> &nbsp; KIIT AUTHENTICATION KEY (KIIT Email)
+        </label>
+        <input class="form-input" id="login-email" type="email"
+               placeholder="2405123@kiit.ac.in" autocomplete="email">
+      </div>
+
+      <p class="login-error" id="login-error"></p>
+
+      <button class="btn btn-primary btn-full btn-lg btn-glow-pulse"
+              id="btn-initiate-uplink">
+        <i class="fa fa-bolt"></i>
+        INITIATE UPLINK
+      </button>
+
+      <div class="login-loading" id="login-loading">
+        <div class="spinner"></div>
+        ESTABLISHING SECURE UPLINK...
+      </div>
+
+      <p style="font-size:0.65rem;color:var(--text-dim);text-align:center;margin-top:var(--space-md);letter-spacing:0.05em">
+        Only <span style="color:var(--cyan)">@kiit.ac.in</span> emails are permitted into this nexus.
+      </p>
+
+      <div style="display:flex;align-items:center;gap:var(--space-md);margin-top:var(--space-md)">
+        <div style="flex:1;height:1px;background:rgba(255,0,60,0.2)"></div>
+        <span style="font-size:0.62rem;color:rgba(255,0,60,0.5);letter-spacing:0.2em">OR</span>
+        <div style="flex:1;height:1px;background:rgba(255,0,60,0.2)"></div>
+      </div>
+
+      <button id="btn-admin-access"
+        style="width:100%;margin-top:var(--space-md);padding:10px;background:rgba(255,0,60,0.08);border:1px solid rgba(255,0,60,0.35);color:rgba(255,0,60,0.85);border-radius:var(--radius-md);font-family:var(--font-body);font-size:0.78rem;letter-spacing:0.2em;cursor:pointer;transition:all 0.2s;text-transform:uppercase">
+        <i class="fa fa-shield-halved"></i> &nbsp;LOGIN AS ADMIN
+      </button>
+    </div>
+  </div>
+
+  <!-- Sector indicators -->
+  <div class="sector-grid">
+    <div class="sector-card">
+      <div class="s-icon">📁</div>
+      <div class="s-name">NOTES</div>
+      <div>Notes & Resources</div>
+    </div>
+    <div class="sector-card">
+      <div class="s-icon">⭐</div>
+      <div class="s-name">RATING</div>
+      <div>Teacher Ratings</div>
+    </div>
+    <div class="sector-card">
+      <div class="s-icon">⚔️</div>
+      <div class="s-name">QUIZZING</div>
+      <div>Proctored Quizzes</div>
+    </div>
+    <div class="sector-card">
+      <div class="s-icon">💬</div>
+      <div class="s-name">CHAT</div>
+      <div>Subject Communities</div>
+    </div>
+  </div>
+
+  <!-- Admin Link -->
+  <div style="margin-top:var(--space-xl);text-align:center">
+    <a href="admin.html" style="font-size:0.65rem;color:rgba(255,0,60,0.4);letter-spacing:0.2em;text-decoration:none;text-transform:uppercase;transition:color 0.2s"
+       onmouseover="this.style.color='rgba(255,0,60,0.9)'" onmouseout="this.style.color='rgba(255,0,60,0.4)'">
+      <i class="fa fa-shield-halved"></i> &nbsp;ADMIN ACCESS
+    </a>
+  </div>
+
+</main>
+
+<!-- ── Admin Login Modal ─────────────────────────────────────────────── -->
+<div id="admin-modal" style="display:none;position:fixed;inset:0;background:rgba(5,2,2,0.92);backdrop-filter:blur(12px);z-index:9998;align-items:center;justify-content:center;padding:var(--space-xl)">
+  <div style="width:100%;max-width:420px;animation:slide-up 0.3s ease">
+    <div style="background:rgba(5,2,2,0.98);border:1px solid rgba(255,0,60,0.4);border-radius:var(--radius-lg);overflow:hidden;box-shadow:0 24px 80px rgba(255,0,60,0.3)">
+      <div style="background:rgba(255,0,60,0.08);border-bottom:1px solid rgba(255,0,60,0.2);padding:12px 20px;display:flex;align-items:center;justify-content:space-between">
+        <span style="font-size:0.72rem;letter-spacing:0.25em;color:rgba(255,0,60,0.9);text-transform:uppercase"><i class="fa fa-shield-halved"></i> &nbsp;RESTRICTED ACCESS — ADMIN ONLY</span>
+        <button id="admin-modal-close" style="background:none;border:none;color:#888;font-size:1rem;cursor:pointer"><i class="fa fa-times"></i></button>
+      </div>
+      <div style="padding:var(--space-xl)">
+        <p style="font-size:0.72rem;color:rgba(255,0,60,0.7);letter-spacing:0.08em;margin-bottom:var(--space-lg);line-height:1.7">
+          [WARNING]: Authorized personnel only.<br>Enter admin credentials to continue.
+        </p>
+        <div class="form-group" style="margin-bottom:var(--space-md)">
+          <label style="display:block;font-size:0.7rem;letter-spacing:0.15em;text-transform:uppercase;color:rgba(255,0,60,0.8);margin-bottom:8px">
+            <i class="fa fa-at"></i> &nbsp;Admin Email
+          </label>
+          <input type="email" id="adm-email" placeholder="2505022@kiit.ac.in"
+            style="width:100%;background:rgba(255,0,60,0.04);border:1px solid rgba(255,0,60,0.25);color:#fff;border-radius:var(--radius-md);padding:10px 14px;font-family:var(--font-body);font-size:0.82rem;box-sizing:border-box;outline:none">
+        </div>
+        <div class="form-group" style="margin-bottom:var(--space-md)">
+          <label style="display:block;font-size:0.7rem;letter-spacing:0.15em;text-transform:uppercase;color:rgba(255,0,60,0.8);margin-bottom:8px">
+            <i class="fa fa-lock"></i> &nbsp;Admin Passphrase
+          </label>
+          <input type="password" id="adm-pass" placeholder="••••••••••••••"
+            style="width:100%;background:rgba(255,0,60,0.04);border:1px solid rgba(255,0,60,0.25);color:#fff;border-radius:var(--radius-md);padding:10px 14px;font-family:var(--font-body);font-size:0.82rem;box-sizing:border-box;outline:none">
+        </div>
+        <p id="adm-error" style="font-size:0.72rem;color:#ff003c;min-height:18px;margin-bottom:var(--space-md)"></p>
+        <button id="adm-login-btn"
+          style="width:100%;padding:12px;background:#ff003c;color:#fff;border:none;border-radius:var(--radius-md);font-family:var(--font-body);font-size:0.82rem;letter-spacing:0.15em;cursor:pointer;transition:all 0.2s;text-transform:uppercase">
+          <i class="fa fa-lock-open"></i> &nbsp;OVERRIDE &amp; ENGAGE
+        </button>
+      </div>
+    </div>
+    <p style="text-align:center;font-size:0.65rem;color:rgba(255,255,255,0.2);margin-top:var(--space-md);letter-spacing:0.1em">Press ESC to dismiss</p>
+  </div>
+</div>
+
+<!-- ── Admin Control Panel (shown after login) ────────────────────── -->
+<div id="admin-panel" style="display:none;position:fixed;inset:0;background:rgba(3,1,1,0.97);backdrop-filter:blur(16px);z-index:9999;overflow-y:auto">
+  <div style="max-width:900px;margin:0 auto;padding:var(--space-xl)">
+
+    <!-- Header -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-xl);padding-bottom:var(--space-lg);border-bottom:1px solid rgba(255,0,60,0.2)">
+      <div style="display:flex;align-items:center;gap:var(--space-md)">
+        <img src="assets/logo.png" alt="K" style="width:44px;height:44px;filter:drop-shadow(0 0 8px rgba(255,0,60,0.6))" onerror="this.style.display='none'">
+        <div>
+          <div style="font-family:var(--font-head);font-size:1.2rem;color:#ff003c;letter-spacing:0.2em">KADEMICS ADMIN</div>
+          <div style="font-size:0.68rem;color:rgba(255,0,60,0.5);letter-spacing:0.15em">COMMAND CENTRE — CLASSIFIED</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:var(--space-sm);flex-wrap:wrap">
+        <button id="btn-use-portal"
+          style="padding:10px 20px;background:#00f3ff;color:#000;border:none;border-radius:var(--radius-md);font-family:var(--font-body);font-size:0.78rem;letter-spacing:0.12em;cursor:pointer;font-weight:700;text-transform:uppercase">
+          <i class="fa fa-rocket"></i> USE PORTAL AS ADMIN
+        </button>
+        <button id="btn-full-dashboard"
+          style="padding:10px 16px;background:rgba(255,0,60,0.1);border:1px solid rgba(255,0,60,0.3);color:#ff003c;border-radius:var(--radius-md);font-family:var(--font-body);font-size:0.78rem;cursor:pointer;text-transform:uppercase;letter-spacing:0.1em">
+          <i class="fa fa-columns"></i> FULL DASHBOARD
+        </button>
+        <button id="btn-panel-close"
+          style="padding:10px 14px;background:rgba(100,100,100,0.1);border:1px solid #444;color:#999;border-radius:var(--radius-md);font-family:var(--font-body);font-size:0.82rem;cursor:pointer">
+          <i class="fa fa-times"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Stats Row -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:var(--space-md);margin-bottom:var(--space-xl)">
+      <div style="background:rgba(255,0,60,0.06);border:1px solid rgba(255,0,60,0.2);border-radius:var(--radius-md);padding:var(--space-md);text-align:center">
+        <div id="ap-pending" style="font-family:var(--font-head);font-size:2rem;color:#ff003c">0</div>
+        <div style="font-size:0.65rem;color:rgba(255,0,60,0.6);letter-spacing:0.15em;text-transform:uppercase;margin-top:4px">Pending</div>
+      </div>
+      <div style="background:rgba(57,255,20,0.06);border:1px solid rgba(57,255,20,0.2);border-radius:var(--radius-md);padding:var(--space-md);text-align:center">
+        <div id="ap-approved" style="font-family:var(--font-head);font-size:2rem;color:#39ff14">0</div>
+        <div style="font-size:0.65rem;color:rgba(57,255,20,0.5);letter-spacing:0.15em;text-transform:uppercase;margin-top:4px">Approved</div>
+      </div>
+      <div style="background:rgba(0,243,255,0.05);border:1px solid rgba(0,243,255,0.2);border-radius:var(--radius-md);padding:var(--space-md);text-align:center">
+        <div id="ap-users" style="font-family:var(--font-head);font-size:2rem;color:#00f3ff">—</div>
+        <div style="font-size:0.65rem;color:rgba(0,243,255,0.5);letter-spacing:0.15em;text-transform:uppercase;margin-top:4px">Agents</div>
+      </div>
+      <div style="background:rgba(255,140,0,0.05);border:1px solid rgba(255,140,0,0.2);border-radius:var(--radius-md);padding:var(--space-md);text-align:center">
+        <div id="ap-denied" style="font-family:var(--font-head);font-size:2rem;color:#ff8c00">0</div>
+        <div style="font-size:0.65rem;color:rgba(255,140,0,0.5);letter-spacing:0.15em;text-transform:uppercase;margin-top:4px">Denied</div>
+      </div>
+    </div>
+
+    <!-- Request Panel -->
+    <h3 style="font-family:var(--font-head);font-size:0.85rem;color:#ff003c;letter-spacing:0.25em;margin-bottom:var(--space-md);text-transform:uppercase">[ PENDING REQUESTS ]</h3>
+    <div id="ap-requests-list"></div>
+
+  </div>
+</div>
+
+<script type="module">
+import { initLoginPage } from './js/auth.js';
+import { getAllRequests, getAdminSession, adminLogin, approveRequest, denyRequest } from './js/admin.js';
+
+// Generate animated star field
+const container = document.getElementById('stars-container');
+for (let i = 0; i < 120; i++) {
+  const star = document.createElement('div');
+  star.className = 'star';
+  const size = Math.random() * 2.5 + 0.5;
+  star.style.cssText = `width:${size}px;height:${size}px;left:${Math.random()*100}%;top:${Math.random()*100}%;opacity:${Math.random()*0.7+0.1};animation-duration:${Math.random()*20+10}s;animation-delay:${Math.random()*-20}s;`;
+  container.appendChild(star);
+}
+
+// Style admin button hover
+const admBtn = document.getElementById('btn-admin-access');
+admBtn?.addEventListener('mouseenter', () => { admBtn.style.background='rgba(255,0,60,0.18)'; admBtn.style.color='rgba(255,0,60,1)'; });
+admBtn?.addEventListener('mouseleave', () => { admBtn.style.background='rgba(255,0,60,0.08)'; admBtn.style.color='rgba(255,0,60,0.85)'; });
+
+// ── Admin Modal Logic ──────────────────────────────────────────────────────
+const adminModal = document.getElementById('admin-modal');
+const adminPanel = document.getElementById('admin-panel');
+
+function openAdminModal() {
+  if (!adminModal) { console.error('[KADEMICS] admin-modal element not found!'); return; }
+  adminModal.style.display = 'flex';
+  setTimeout(() => document.getElementById('adm-email')?.focus(), 100);
+}
+function closeAdminModal() { if (adminModal) adminModal.style.display = 'none'; }
+function openAdminPanel() {
+  if (!adminPanel) { console.error('[KADEMICS] admin-panel element not found!'); return; }
+  if (adminModal) adminModal.style.display = 'none';
+  adminPanel.style.display = 'block';
+  loadAdminPanel();
+}
+function closeAdminPanel() { if (adminPanel) adminPanel.style.display = 'none'; }
+
+admBtn?.addEventListener('click', openAdminModal);
+document.getElementById('admin-modal-close')?.addEventListener('click', closeAdminModal);
+document.getElementById('btn-panel-close')?.addEventListener('click', closeAdminPanel);
+
+// ESC key: close any open overlay
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    if (adminPanel.style.display === 'block') closeAdminPanel();
+    else if (adminModal.style.display === 'flex') closeAdminModal();
+  }
+});
+
+// If already admin session active, show panel button
+const existingAdmin = getAdminSession();
+if (existingAdmin) {
+  admBtn.innerHTML = '<i class="fa fa-shield-halved"></i> &nbsp;ADMIN CONTROL PANEL';
+  admBtn.addEventListener('click', (e) => { e.stopImmediatePropagation(); openAdminPanel(); }, { once: true });
+}
+
+// Admin login submit
+const admLoginBtn = document.getElementById('adm-login-btn');
+const admErrEl   = document.getElementById('adm-error');
+
+async function doAdminLogin() {
+  const email = document.getElementById('adm-email').value.trim().toLowerCase();
+  const pass  = document.getElementById('adm-pass').value;
+  admErrEl.textContent = '';
+  if (!email || !pass) { admErrEl.textContent = '[WARNING]: All fields required.'; return; }
+  admLoginBtn.disabled = true;
+  admLoginBtn.innerHTML = 'VERIFYING...';
+  await new Promise(r => setTimeout(r, 500));
+  const result = adminLogin(email, pass);
+  if (result.success) {
+    admLoginBtn.innerHTML = '<i class="fa fa-check"></i> AUTHENTICATED';
+    setTimeout(openAdminPanel, 400);
+  } else {
+    admErrEl.textContent = result.error;
+    admLoginBtn.disabled = false;
+    admLoginBtn.innerHTML = '<i class="fa fa-lock-open"></i> OVERRIDE & ENGAGE';
+  }
+}
+
+admLoginBtn?.addEventListener('click', doAdminLogin);
+document.getElementById('adm-pass')?.addEventListener('keydown', e => { if (e.key === 'Enter') doAdminLogin(); });
+document.getElementById('adm-email')?.addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('adm-pass').focus(); });
+
+// ── Admin Panel Logic ──────────────────────────────────────────────────────
+function loadAdminPanel() {
+  const all      = getAllRequests();
+  const pending  = all.filter(r => r.status === 'PENDING');
+  const approved = all.filter(r => r.status === 'APPROVED');
+  const denied   = all.filter(r => r.status === 'DENIED');
+  document.getElementById('ap-pending').textContent  = pending.length;
+  document.getElementById('ap-approved').textContent = approved.length;
+  document.getElementById('ap-denied').textContent   = denied.length;
+
+  // User count: unique submitter rolls
+  const rolls = new Set(all.map(r => r.submitter?.roll));
+  document.getElementById('ap-users').textContent = rolls.size || '0';
+
+  // Render pending requests (last 8)
+  const list = document.getElementById('ap-requests-list');
+  if (!pending.length) {
+    list.innerHTML = '<p style="color:rgba(255,255,255,0.3);font-size:0.82rem;text-align:center;padding:var(--space-xl)">✓ No pending requests — all clear.</p>';
+  } else {
+    const admin = getAdminSession();
+    list.innerHTML = pending.slice(0, 10).map(r => `
+      <div style="background:rgba(255,0,60,0.04);border:1px solid rgba(255,0,60,0.15);border-radius:var(--radius-md);padding:var(--space-md);margin-bottom:var(--space-sm);display:grid;grid-template-columns:1fr auto;gap:var(--space-md);align-items:center">
+        <div>
+          <span style="font-size:0.65rem;background:rgba(255,0,60,0.1);color:var(--laser-red);padding:2px 8px;border-radius:3px;letter-spacing:0.1em">${typeLabel(r.type)}</span>
+          <div style="font-weight:600;font-size:0.88rem;margin-top:4px">${escHtml(r.data?.name||r.data?.title||r.data?.room||'N/A')}</div>
+          <div style="font-size:0.7rem;color:#666;margin-top:2px">${r.submitter?.name||'?'} (${r.submitter?.roll||'?'}) · ${r.createdAt?.substring(0,10)||''}</div>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button onclick="apAction('${r.id}','approve')" style="padding:6px 12px;background:rgba(57,255,20,0.15);border:1px solid rgba(57,255,20,0.4);color:var(--neon-green);border-radius:var(--radius-sm);cursor:pointer;font-size:0.72rem"><i class="fa fa-check"></i> OK</button>
+          <button onclick="apAction('${r.id}','deny')" style="padding:6px 12px;background:rgba(255,0,60,0.1);border:1px solid rgba(255,0,60,0.3);color:var(--laser-red);border-radius:var(--radius-sm);cursor:pointer;font-size:0.72rem"><i class="fa fa-times"></i></button>
+        </div>
+      </div>`).join('');
+  }
+}
+
+window.apAction = function(id, action) {
+  const admin = getAdminSession();
+  if (!admin) return;
+  if (action === 'approve') approveRequest(id, admin);
+  else denyRequest(id, admin, 'Declined by admin.');
+  loadAdminPanel();
+};
+
+// Use Portal as Admin button
+document.getElementById('btn-use-portal')?.addEventListener('click', () => {
+  window.location.href = 'dashboard.html';
+});
+document.getElementById('btn-full-dashboard')?.addEventListener('click', () => {
+  window.location.href = 'admin-dashboard.html';
+});
+
+function typeLabel(t) {
+  const m = {ADD_COURSE:'Course',ADD_BRANCH:'Branch',ADD_YEAR:'Year',ADD_SUBJECT:'Subject',ADD_TEACHER:'Teacher',ADD_NOTE:'Note',ADD_ORACLE_TEACHER:'Oracle Teacher',ADD_QUIZ:'Quiz',ADD_NEXUS_ROOM:'Nexus Room'};
+  return m[t] || t;
+}
+function escHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ── Student Login ──────────────────────────────────────────────────────────
+initLoginPage();
+</script>
+</body>
+</html>

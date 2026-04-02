@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KADEMICS — Admin Control Centre</title>
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    :root { --admin-red: #ff003c; --admin-red-dim: rgba(255,0,60,0.12); }
+
+    /* ── Admin Nav */
+    .admin-nav {
+      position: fixed; top:0; left:0; right:0; height:60px;
+      background: rgba(5,2,2,0.95); backdrop-filter:blur(16px);
+      border-bottom: 1px solid rgba(255,0,60,0.3);
+      display: flex; align-items:center; justify-content:space-between;
+      padding: 0 var(--space-xl); z-index: 999;
+      box-shadow: 0 0 20px rgba(255,0,60,0.08);
+    }
+    .admin-nav-left { display:flex; align-items:center; gap:var(--space-md); }
+    .admin-badge-small {
+      background:var(--admin-red-dim); border:1px solid rgba(255,0,60,0.4);
+      color:var(--admin-red); border-radius:4px; padding:3px 10px;
+      font-size:0.65rem; letter-spacing:0.25em; text-transform:uppercase;
+    }
+
+    /* ── Layout */
+    .admin-layout { display:grid; grid-template-columns:220px 1fr; min-height:calc(100vh - 60px); margin-top:60px; }
+
+    /* ── Sidebar */
+    .admin-sidebar {
+      background:rgba(5,2,2,0.97); border-right:1px solid rgba(255,0,60,0.15);
+      padding: var(--space-lg) 0; position:sticky; top:60px; height:calc(100vh - 60px); overflow-y:auto;
+    }
+    .sidebar-section { padding:8px var(--space-md); font-size:0.6rem; letter-spacing:0.2em; color:rgba(255,0,60,0.5); text-transform:uppercase; margin-top:var(--space-md); }
+    .sidebar-item {
+      display:flex; align-items:center; gap:10px; padding:10px var(--space-lg);
+      color:var(--text-secondary); font-size:0.82rem; cursor:pointer; transition:var(--transition);
+      border-left:2px solid transparent;
+    }
+    .sidebar-item:hover, .sidebar-item.active {
+      color:var(--admin-red); border-left-color:var(--admin-red);
+      background:var(--admin-red-dim);
+    }
+    .sidebar-item .s-icon { width:16px; text-align:center; color:var(--admin-red); }
+
+    /* ── Main Area */
+    .admin-main { padding: var(--space-xl); overflow-y:auto; }
+
+    /* ── Stat cards */
+    .admin-stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:var(--space-md); margin-bottom:var(--space-xl); }
+    .astat { background:var(--card-bg); border:1px solid rgba(255,0,60,0.2); border-radius:var(--radius-md); padding:var(--space-md); }
+    .astat .n { font-family:var(--font-head); font-size:2rem; color:var(--admin-red); text-shadow:0 0 15px rgba(255,0,60,0.4); }
+    .astat .l { font-size:0.68rem; color:var(--text-dim); letter-spacing:0.1em; text-transform:uppercase; margin-top:4px; }
+
+    /* ── Panels */
+    .panel { display:none; }
+    .panel.active { display:block; animation:fade-in 0.2s ease; }
+
+    /* ── Request Cards */
+    .request-card {
+      background:var(--card-bg); border:1px solid rgba(255,0,60,0.2);
+      border-radius:var(--radius-md); padding:var(--space-md); margin-bottom:var(--space-sm);
+      display:grid; grid-template-columns:1fr auto; gap:var(--space-md); align-items:center;
+      transition:var(--transition);
+    }
+    .request-card:hover { border-color:rgba(255,0,60,0.5); }
+    .req-meta { font-size:0.7rem; color:var(--text-dim); margin-top:4px; letter-spacing:0.05em; }
+    .req-type { display:inline-block; padding:2px 8px; border-radius:3px; font-size:0.65rem; letter-spacing:0.1em; background:var(--admin-red-dim); color:var(--admin-red); margin-bottom:4px; }
+    .req-actions { display:flex; gap:var(--space-sm); flex-shrink:0; flex-direction:column; }
+
+    /* ── Status Badges */
+    .status-pending  { color:var(--warning);    background:rgba(255,140,0,0.1);  border:1px solid rgba(255,140,0,0.3);  padding:2px 8px; border-radius:3px; font-size:0.65rem; }
+    .status-approved { color:var(--neon-green); background:rgba(57,255,20,0.1);  border:1px solid rgba(57,255,20,0.3);  padding:2px 8px; border-radius:3px; font-size:0.65rem; }
+    .status-denied   { color:#888;              background:rgba(100,100,100,0.1);border:1px solid #444;                 padding:2px 8px; border-radius:3px; font-size:0.65rem; }
+
+    /* ── Add Forms */
+    .add-form-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:var(--space-lg); }
+    .add-form-card { background:var(--card-bg); border:1px solid rgba(255,0,60,0.15); border-radius:var(--radius-lg); padding:var(--space-lg); }
+    .add-form-title { font-family:var(--font-head); font-size:0.85rem; color:var(--admin-red); margin-bottom:var(--space-md); letter-spacing:0.15em; }
+    .btn-admin-add { background:var(--admin-red); color:#fff; border:none; padding:10px 20px; border-radius:var(--radius-md); font-family:var(--font-body); font-size:0.75rem; letter-spacing:0.1em; cursor:pointer; transition:var(--transition); width:100%; margin-top:var(--space-sm); }
+    .btn-admin-add:hover { box-shadow:0 0 16px rgba(255,0,60,0.4); transform:translateY(-1px); }
+
+    /* ── View Modal */
+    .view-modal-overlay { position:fixed;inset:0;background:rgba(5,2,2,0.9);backdrop-filter:blur(8px);z-index:9999;display:none;align-items:center;justify-content:center;padding:var(--space-lg); }
+    .view-modal-overlay.open { display:flex; }
+    .view-modal { background:var(--void-2);border:1px solid rgba(255,0,60,0.3);border-radius:var(--radius-lg);padding:var(--space-xl);max-width:560px;width:100%;max-height:80vh;overflow-y:auto; }
+
+    /* ── Toast */
+    .admin-toast-container { position:fixed;bottom:var(--space-xl);right:var(--space-xl);z-index:9998;display:flex;flex-direction:column;gap:var(--space-sm); }
+    .admin-toast { padding:12px 20px;border-radius:var(--radius-md);font-size:0.8rem;animation:slide-up 0.3s ease;display:flex;align-items:center;gap:8px;min-width:260px;border-left:3px solid; }
+    .admin-toast.success { background:rgba(57,255,20,0.1);border-color:var(--neon-green);color:var(--neon-green); }
+    .admin-toast.error   { background:rgba(255,0,60,0.1);border-color:var(--admin-red);color:var(--admin-red); }
+    .admin-toast.info    { background:rgba(255,140,0,0.1);border-color:var(--warning);color:var(--warning); }
+
+    .tab-filters { display:flex;gap:var(--space-sm);margin-bottom:var(--space-lg);flex-wrap:wrap; }
+    .tab-filter  { padding:6px 16px;border-radius:var(--radius-md);font-size:0.72rem;letter-spacing:0.1em;cursor:pointer;background:transparent;border:1px solid rgba(255,0,60,0.25);color:var(--text-dim);transition:var(--transition);font-family:var(--font-body);text-transform:uppercase; }
+    .tab-filter.active,.tab-filter:hover { background:var(--admin-red-dim);border-color:var(--admin-red);color:var(--admin-red); }
+
+    .live-badge { display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--admin-red);box-shadow:0 0 6px var(--admin-red);animation:pulse-dot 1s infinite;margin-right:6px; }
+  </style>
+</head>
+<body>
+
+<!-- ── Admin Nav ─────────────────────────────────────────── -->
+<nav class="admin-nav">
+  <div class="admin-nav-left">
+    <img src="assets/logo.png" alt="K" style="width:36px;height:36px;filter:drop-shadow(0 0 6px rgba(255,0,60,0.6));object-fit:contain" onerror="this.style.display='none'">
+    <span style="font-family:var(--font-head);font-size:1.1rem;color:var(--admin-red);letter-spacing:0.2em">KADEMICS</span>
+    <span class="admin-badge-small"><i class="fa fa-shield-halved"></i> ADMIN</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:var(--space-lg)">
+    <span id="admin-name-display" style="font-size:0.78rem;color:var(--text-dim);letter-spacing:0.1em"></span>
+    <a href="dashboard.html" style="font-size:0.75rem;color:var(--text-dim);text-decoration:none;padding:6px 12px;border:1px solid rgba(255,255,255,0.1);border-radius:var(--radius-sm);">
+      <i class="fa fa-users"></i> Student View
+    </a>
+    <button onclick="doLogout()" style="background:var(--admin-red-dim);border:1px solid rgba(255,0,60,0.3);color:var(--admin-red);padding:6px 14px;border-radius:var(--radius-sm);cursor:pointer;font-family:var(--font-body);font-size:0.75rem;letter-spacing:0.1em">
+      <i class="fa fa-power-off"></i> LOGOUT
+    </button>
+  </div>
+</nav>
+
+<!-- ── Layout ────────────────────────────────────────────── -->
+<div class="admin-layout">
+
+  <!-- Sidebar -->
+  <aside class="admin-sidebar">
+    <div class="sidebar-section">OVERVIEW</div>
+    <div class="sidebar-item active" onclick="showPanel('overview',this)">
+      <span class="s-icon"><i class="fa fa-chart-pie"></i></span> Dashboard
+    </div>
+    <div class="sidebar-item" onclick="showPanel('requests',this)">
+      <span class="s-icon"><i class="fa fa-inbox"></i></span> Requests
+      <span id="pending-badge" style="margin-left:auto;background:var(--admin-red);color:#fff;border-radius:10px;padding:1px 7px;font-size:0.65rem;display:none">0</span>
+    </div>
+
+    <div class="sidebar-section">ARCHIVE SECTOR</div>
+    <div class="sidebar-item" onclick="showPanel('add-course',this)">
+      <span class="s-icon"><i class="fa fa-graduation-cap"></i></span> Add Course
+    </div>
+    <div class="sidebar-item" onclick="showPanel('add-branch',this)">
+      <span class="s-icon"><i class="fa fa-code-branch"></i></span> Add Branch
+    </div>
+    <div class="sidebar-item" onclick="showPanel('add-year',this)">
+      <span class="s-icon"><i class="fa fa-calendar"></i></span> Add Year
+    </div>
+    <div class="sidebar-item" onclick="showPanel('add-subject',this)">
+      <span class="s-icon"><i class="fa fa-book"></i></span> Add Subject
+    </div>
+    <div class="sidebar-item" onclick="showPanel('add-teacher',this)">
+      <span class="s-icon"><i class="fa fa-chalkboard-user"></i></span> Add Teacher
+    </div>
+
+    <div class="sidebar-section">OTHER SECTORS</div>
+    <div class="sidebar-item" onclick="showPanel('add-oracle',this)">
+      <span class="s-icon"><i class="fa fa-star"></i></span> Add Oracle Teacher
+    </div>
+    <div class="sidebar-item" onclick="showPanel('add-quiz',this)">
+      <span class="s-icon"><i class="fa fa-gamepad"></i></span> Create Quiz
+    </div>
+    <div class="sidebar-item" onclick="showPanel('add-nexus',this)">
+      <span class="s-icon"><i class="fa fa-comments"></i></span> Add Nexus Room
+    </div>
+
+    <div class="sidebar-section">SYSTEM</div>
+    <div class="sidebar-item" onclick="showPanel('api-info',this)">
+      <span class="s-icon"><i class="fa fa-key"></i></span> API Key Guide
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="admin-main">
+
+    <!-- ── OVERVIEW ──────────────────────────────────────── -->
+    <div class="panel active" id="panel-overview">
+      <p style="font-size:0.7rem;letter-spacing:0.2em;color:var(--admin-red);text-transform:uppercase;margin-bottom:var(--space-sm)">[ COMMAND CENTRE ]</p>
+      <h2 style="margin-bottom:var(--space-xl)">System Overview</h2>
+      <div class="admin-stats">
+        <div class="astat"><div class="n" id="ov-pending">0</div><div class="l">Pending Requests</div></div>
+        <div class="astat"><div class="n" id="ov-approved">0</div><div class="l">Items Approved</div></div>
+        <div class="astat"><div class="n" id="ov-denied">0</div><div class="l">Requests Denied</div></div>
+        <div class="astat"><div class="n" id="ov-total">0</div><div class="l">Total Requests</div></div>
+      </div>
+
+      <h3 style="margin-bottom:var(--space-md)">Recent Activity</h3>
+      <div id="recent-activity">
+        <p style="color:var(--text-dim);font-size:0.82rem">No activity yet. Requests from students will appear here.</p>
+      </div>
+    </div>
+
+    <!-- ── REQUESTS ──────────────────────────────────────── -->
+    <div class="panel" id="panel-requests">
+      <p style="font-size:0.7rem;letter-spacing:0.2em;color:var(--admin-red);text-transform:uppercase;margin-bottom:var(--space-sm)">[ REQUEST QUEUE ]</p>
+      <h2 style="margin-bottom:var(--space-md)">Student Requests</h2>
+      <div class="tab-filters">
+        <button class="tab-filter active" onclick="filterRequests('ALL',this)">ALL</button>
+        <button class="tab-filter" onclick="filterRequests('PENDING',this)"><span class="live-badge"></span>PENDING</button>
+        <button class="tab-filter" onclick="filterRequests('APPROVED',this)">APPROVED</button>
+        <button class="tab-filter" onclick="filterRequests('DENIED',this)">DENIED</button>
+      </div>
+      <div id="requests-list"></div>
+    </div>
+
+    <!-- ── ADD COURSE ────────────────────────────────────── -->
+    <div class="panel" id="panel-add-course">
+      <p style="font-size:0.7rem;letter-spacing:0.2em;color:var(--admin-red);text-transform:uppercase;margin-bottom:var(--space-sm)">[ ARCHIVE SECTOR ]</p>
+      <h2 style="margin-bottom:var(--space-xl)">Add Course</h2>
+      <div style="max-width:520px">
+        <div class="add-form-card">
+          <div class="add-form-title"><i class="fa fa-graduation-cap"></i> &nbsp;NEW COURSE ENTRY</div>
+          <div class="form-group"><label class="form-label">Course Name *</label><input class="form-input" id="ac-name" placeholder="e.g. B.Tech Computer Science & Engineering"></div>
+          <div class="form-group"><label class="form-label">Short Code</label><input class="form-input" id="ac-code" placeholder="e.g. CSE, ECE, MECH"></div>
+          <div class="form-group"><label class="form-label">Description</label><textarea class="form-textarea" id="ac-desc" placeholder="Brief description..."></textarea></div>
+          <button class="btn-admin-add" onclick="adminAdd('ADD_COURSE',{name:v('ac-name'),code:v('ac-code'),desc:v('ac-desc')},'ac-name')">
+            <i class="fa fa-plus"></i> ADD COURSE TO DATABASE
+          </button>
+        </div>
+        <div id="ac-added" style="margin-top:var(--space-md)"></div>
+      </div>
+    </div>
+
+    <!-- ── ADD BRANCH ────────────────────────────────────── -->
+    <div class="panel" id="panel-add-branch">
+      <p style="font-size:0.7rem;letter-spacing:0.2em;color:var(--admin-red);text-transform:uppercase;margin-bottom:var(--space-sm)">[ ARCHIVE SECTOR ]</p>
+      <h2 style="margin-bottom:var(--space-xl)">Add Branch</h2>
+      <div style="max-width:520px">
+        <div class="add-form-card">
+          <div class="add-form-title"><i class="fa fa-code-branch"></i> &nbsp;NEW BRANCH ENTRY</div>
+          <div class="form-group"><label class="form-label">Parent Course ID</label><input class="form-input" id="ab-cid" type="number" placeholder="e.g. 1"></div>
+          <div class="form-group"><label class="form-label">Branch Name *</label><input class="form-input" id="ab-name" placeholder="e.g. CSE (AI & ML)"></div>
+          <div class="form-group"><label class="form-label">Description</label><textarea class="form-textarea" id="ab-desc" placeholder="Brief description..."></textarea></div>
+          <button class="btn-admin-add" onclick="adminAdd('ADD_BRANCH',{name:v('ab-name'),course_id:v('ab-cid'),desc:v('ab-desc')},'ab-name')">
+            <i class="fa fa-plus"></i> ADD BRANCH
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── ADD YEAR ──────────────────────────────────────── -->
+    <div class="panel" id="panel-add-year">
+      <p style="font-size:0.7rem;letter-spacing:0.2em;color:var(--admin-red);text-transform:uppercase;margin-bottom:var(--space-sm)">[ ARCHIVE SECTOR ]</p>
+      <h2 style="margin-bottom:var(--space-xl)">Add Academic Year</h2>
+      <div style="max-width:520px">
+        <div class="add-form-card">
+          <div class="add-form-title"><i class="fa fa-calendar"></i> &nbsp;NEW YEAR ENTRY</div>
+          <div class="form-group"><label class="form-label">Branch ID</label><input class="form-input" id="ay-bid" type="number" placeholder="e.g. 1"></div>
+          <div class="form-group"><label class="form-label">Year Name *</label><input class="form-input" id="ay-name" placeholder="e.g. 1st Year, 2nd Year"></div>
+          <button class="btn-admin-add" onclick="adminAdd('ADD_YEAR',{name:v('ay-name'),branch_id:v('ay-bid')},'ay-name')">
+            <i class="fa fa-plus"></i> ADD YEAR
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── ADD SUBJECT ───────────────────────────────────── -->
+    <div class="panel" id="panel-add-subject">
+      <p style="font-size:0.7rem;letter-spacing:0.2em;color:var(--admin-red);text-transform:uppercase;margin-bottom:var(--space-sm)">[ ARCHIVE SECTOR ]</p>
+      <h2 style="margin-bottom:var(--space-xl)">Add Subject</h2>
+      <div style="max-width:520px">
+        <div class="add-form-card">
+          <div class="add-form-title"><i class="fa fa-book"></i> &nbsp;NEW SUBJECT ENTRY</div>
+          <div class="form-group"><label class="form-label">Year ID</label><input class="form-input" id="as-yid" type="number" placeholder="e.g. 1"></div>
+          <div class="form-group"><label class="form-label">Subject Name *</label><input class="form-input" id="as-name" placeholder="e.g. Programming & Problem Solving Using C"></div>
+          <div class="form-group"><label class="form-label">Subject Code</label><input class="form-input" id="as-code" placeholder="e.g. CS1001"></div>
+          <button class="btn-admin-add" onclick="adminAdd('ADD_SUBJECT',{name:v('as-name'),year_id:v('as-yid'),code:v('as-code')},'as-name')">
+            <i class="fa fa-plus"></i> ADD SUBJECT
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── ADD TEACHER (Archive) ─────────────────────────── -->
+    <div class="panel" id="panel-add-teacher">
+      <p style="font-size:0.7rem;letter-spacing:0.2em;color:var(--admin-red);text-transform:uppercase;margin-bottom:var(--space-sm)">[ ARCHIVE SECTOR ]</p>
+      <h2 style="margin-bottom:var(--space-xl)">Add Teacher to Archive</h2>
+      <div style="max-width:520px">
+        <div class="add-form-card">
+          <div class="add-form-title"><i class="fa fa-chalkboard-user"></i> &nbsp;NEW TEACHER ENTRY</div>
+          <div class="form-group"><label class="form-label">Subject ID</label><input class="form-input" id="at-sid" type="number" placeholder="e.g. 1"></div>
+          <div class="form-group"><label class="form-label">Teacher Name *</label><input class="form-input" id="at-name" placeholder="e.g. Dr. A. Mohanty"></div>
+          <div class="form-group"><label class="form-label">Bio / Designation</label><textarea class="form-textarea" id="at-bio" placeholder="Brief bio..."></textarea></div>
+          <button class="btn-admin-add" onclick="adminAdd('ADD_TEACHER',{name:v('at-name'),subject_id:v('at-sid'),bio:v('at-bio')},'at-name')">
+            <i class="fa fa-plus"></i> ADD TEACHER
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── ADD ORACLE TEACHER ────────────────────────────── -->
+    <div class="panel" id="panel-add-oracle">
+      <p style="font-size:0.7rem;letter-spacing:0.2em;color:var(--admin-red);text-transform:uppercase;margin-bottom:var(--space-sm)">[ ORACLE SECTOR ]</p>
+      <h2 style="margin-bottom:var(--space-xl)">Add Oracle Teacher Profile</h2>
+      <div style="max-width:520px">
+        <div class="add-form-card">
+          <div class="add-form-title"><i class="fa fa-star"></i> &nbsp;NEW ORACLE ENTRY</div>
+          <div class="form-group"><label class="form-label">Full Name *</label><input class="form-input" id="ao-name" placeholder="e.g. Prof. Sudhansu Mohanty"></div>
+          <div class="form-group"><label class="form-label">Qualification</label><input class="form-input" id="ao-qual" placeholder="e.g. PhD CS, IIT Bombay"></div>
+          <div class="form-group"><label class="form-label">Photo URL (optional)</label><input class="form-input" id="ao-photo" placeholder="https://..."></div>
+          <div class="form-group"><label class="form-label">Bio</label><textarea class="form-textarea" id="ao-bio" placeholder="Brief professional description..."></textarea></div>
+          <button class="btn-admin-add" onclick="adminAdd('ADD_ORACLE_TEACHER',{name:v('ao-name'),qualification:v('ao-qual'),photo:v('ao-photo'),bio:v('ao-bio'),avg_rating:0},'ao-name')">
+            <i class="fa fa-plus"></i> ADD ORACLE PROFILE
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── CREATE QUIZ ───────────────────────────────────── -->
+    <div class="panel" id="panel-add-quiz">
+      <p style="font-size:0.7rem;letter-spacing:0.2em;color:var(--admin-red);text-transform:uppercase;margin-bottom:var(--space-sm)">[ GAUNTLET SECTOR ]</p>
+      <h2 style="margin-bottom:var(--space-xl)">Create Quiz</h2>
+      <div class="add-form-grid">
+        <div class="add-form-card">
+          <div class="add-form-title"><i class="fa fa-gamepad"></i> &nbsp;QUIZ DETAILS</div>
+          <div class="form-group"><label class="form-label">Quiz Title *</label><input class="form-input" id="aq-title" placeholder="e.g. C Programming Mid-Sem Blast"></div>
+          <div class="form-group"><label class="form-label">Subject</label><input class="form-input" id="aq-subject" placeholder="e.g. PPS Using C"></div>
+          <div class="form-group"><label class="form-label">Password (students need this)</label><input class="form-input" id="aq-pass" placeholder="e.g. clab2024"></div>
+          <div class="form-group">
+            <label class="form-label">Status</label>
+            <select class="form-select" id="aq-status">
+              <option value="UPCOMING">UPCOMING</option>
+              <option value="OPEN">OPEN</option>
+              <option value="LIVE">LIVE</option>
+            </select>
+          </div>
+          <div class="form-group"><label class="form-label">Start Time</label><input class="form-input" id="aq-time" type="datetime-local"></div>
+          <button class="btn-admin-add" onclick="createQuiz()">
+            <i class="fa fa-plus"></i> CREATE QUIZ
+          </button>
+        </div>
+        <div class="add-form-card">
+          <div class="add-form-title"><i class="fa fa-question-circle"></i> &nbsp;ADD QUESTION</div>
+          <div class="form-group"><label class="form-label">Quiz ID (from created quizzes)</label><input class="form-input" id="qq-id" type="number" placeholder="Quiz ID"></div>
+          <div class="form-group"><label class="form-label">Question *</label><textarea class="form-textarea" id="qq-q" placeholder="Enter question text..."></textarea></div>
+          <div class="form-group"><label class="form-label">Option A *</label><input class="form-input" id="qq-a" placeholder="Option A"></div>
+          <div class="form-group"><label class="form-label">Option B *</label><input class="form-input" id="qq-b" placeholder="Option B"></div>
+          <div class="form-group"><label class="form-label">Option C</label><input class="form-input" id="qq-c" placeholder="Option C"></div>
+          <div class="form-group"><label class="form-label">Option D</label><input class="form-input" id="qq-d" placeholder="Option D"></div>
+          <div class="form-group">
+            <label class="form-label" style="display:flex;justify-content:space-between;align-items:center">
+              Correct Answer(s)
+              <button onclick="addCorrectAnsField()" class="btn btn-ghost btn-sm" style="padding:2px 8px;color:var(--cyan)" title="Add another correct option"><i class="fa fa-plus"></i></button>
+            </label>
+            <div id="qq-ans-container" style="display:flex;flex-direction:column;gap:8px">
+              <select class="form-select qq-ans-select"><option>A</option><option>B</option><option>C</option><option>D</option></select>
+            </div>
+          </div>
+          <div class="form-group"><label class="form-label">Marks</label><input class="form-input" id="qq-marks" type="number" value="1" min="1" max="5"></div>
+          <button class="btn-admin-add" onclick="addQuestion()">
+            <i class="fa fa-plus"></i> ADD QUESTION
+          </button>
+        </div>
+      </div>
+      <div id="quiz-created-list" style="margin-top:var(--space-xl)"></div>
+    </div>
+
+    <!-- ── ADD NEXUS ROOM ────────────────────────────────── -->
+    <div class="panel" id="panel-add-nexus">
+      <p style="font-size:0.7rem;letter-spacing:0.2em;color:var(--admin-red);text-transform:uppercase;margin-bottom:var(--space-sm)">[ NEXUS SECTOR ]</p>
+      <h2 style="margin-bottom:var(--space-xl)">Add Community Room</h2>
+      <div style="max-width:520px">
+        <div class="add-form-card">
+          <div class="add-form-title"><i class="fa fa-comments"></i> &nbsp;NEW NEXUS ROOM</div>
+          <div class="form-group"><label class="form-label">Room ID (no spaces, lowercase) *</label><input class="form-input" id="an-room" placeholder="e.g. cse-2nd-year"></div>
+          <div class="form-group"><label class="form-label">Channel Name *</label><input class="form-input" id="an-name" placeholder="e.g. 2nd Year CSE Community"></div>
+          <div class="form-group"><label class="form-label">Subject / Topic</label><input class="form-input" id="an-sub" placeholder="e.g. DSA, OS, DBMS..."></div>
+          <button class="btn-admin-add" onclick="adminAdd('ADD_NEXUS_ROOM',{room:v('an-room'),teacher:v('an-name'),subject:v('an-sub')},'an-room')">
+            <i class="fa fa-plus"></i> CREATE NEXUS ROOM
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── API KEY GUIDE ──────────────────────────────────── -->
+    <div class="panel" id="panel-api-info">
+      <p style="font-size:0.7rem;letter-spacing:0.2em;color:var(--admin-red);text-transform:uppercase;margin-bottom:var(--space-sm)">[ SYSTEM CONFIGURATION ]</p>
+      <h2 style="margin-bottom:var(--space-xl)">API Key Configuration Guide</h2>
+      <div style="max-width:760px">
+
+        <div class="card" style="margin-bottom:var(--space-lg)">
+          <h3 style="color:var(--cyan);margin-bottom:var(--space-md)">📍 Current Mode</h3>
+          <p id="current-mode-text" style="font-size:0.85rem;line-height:1.8;color:var(--text-secondary)">Detecting...</p>
+        </div>
+
+        <div class="card" style="margin-bottom:var(--space-lg)">
+          <h3 style="color:var(--neon-green);margin-bottom:var(--space-md)">🔑 Step 1: Get Your JWT Secret (C Backend Auth)</h3>
+          <p style="font-size:0.82rem;color:var(--text-secondary);line-height:1.8;margin-bottom:var(--space-md)">
+            KADEMICS uses its own auth — no Google/GitHub OAuth needed. The C backend generates session tokens using a secret.
+            In <code style="color:var(--cyan);background:rgba(0,243,255,0.08);padding:2px 6px;border-radius:3px">src/auth.c</code>, add your secret:
+          </p>
+          <div style="background:var(--void-3);border:1px solid rgba(0,243,255,0.15);border-radius:var(--radius-md);padding:var(--space-md);font-family:var(--font-body);font-size:0.78rem;color:var(--neon-green);letter-spacing:0.05em">
+            <span style="color:var(--text-dim)">// In src/auth.c</span><br>
+            #define JWT_SECRET &nbsp;"<span style="color:var(--cyan)">YOUR_SECRET_KEY_HERE_32_CHARS_MIN</span>"<br>
+            #define ADMIN_EMAIL &nbsp;"<span style="color:var(--cyan)">2505022@kiit.ac.in</span>"<br>
+            #define ADMIN_PASS &nbsp;&nbsp;"<span style="color:var(--cyan)">Kademics20180704</span>"
+          </div>
+          <p style="font-size:0.75rem;color:var(--text-dim);margin-top:var(--space-sm)">
+            Generate a secure secret: <code style="color:var(--cyan)">openssl rand -hex 32</code> in any terminal.
+          </p>
+        </div>
+
+        <div class="card" style="margin-bottom:var(--space-lg)">
+          <h3 style="color:var(--violet);margin-bottom:var(--space-md)">📧 Step 2: SMTP for Email Notifications (Optional)</h3>
+          <p style="font-size:0.82rem;color:var(--text-secondary);line-height:1.8;margin-bottom:var(--space-md)">
+            To send email notifications when requests are approved/denied, configure SMTP credentials in the C backend:
+          </p>
+          <div style="background:var(--void-3);border:1px solid rgba(188,19,254,0.15);border-radius:var(--radius-md);padding:var(--space-md);font-family:var(--font-body);font-size:0.78rem;color:var(--neon-green)">
+            <span style="color:var(--text-dim)">// In src/config.c (not yet implemented — future)</span><br>
+            #define SMTP_HOST &nbsp;&nbsp;&nbsp;"<span style="color:var(--violet)">smtp.gmail.com</span>"<br>
+            #define SMTP_PORT &nbsp;&nbsp;&nbsp;"<span style="color:var(--violet)">587</span>"<br>
+            #define SMTP_EMAIL &nbsp;&nbsp;"<span style="color:var(--violet)">your-kiit-email@kiit.ac.in</span>"<br>
+            #define SMTP_PASS &nbsp;&nbsp;&nbsp;"<span style="color:var(--violet)">your-app-password</span>"
+          </div>
+          <p style="font-size:0.75rem;color:var(--text-dim);margin-top:var(--space-sm)">
+            Get Gmail App Password: <strong style="color:var(--violet)">Google Account → Security → 2FA → App Passwords</strong>
+          </p>
+        </div>
+
+        <div class="card" style="margin-bottom:var(--space-lg)">
+          <h3 style="color:var(--warning);margin-bottom:var(--space-md)">☁️ Step 3: Deploy to Production (Optional)</h3>
+          <div style="font-size:0.82rem;color:var(--text-secondary);line-height:1.8">
+            <p style="margin-bottom:var(--space-sm)">To host KADEMICS online so all KIIT students can access it:</p>
+            <ol style="padding-left:var(--space-lg)">
+              <li style="margin-bottom:8px">Get a VPS: <strong style="color:var(--warning)">Railway.app</strong> (free tier) or <strong style="color:var(--warning)">Render.com</strong></li>
+              <li style="margin-bottom:8px">Set environment variable: <code style="color:var(--cyan)">JWT_SECRET=your_secret_here</code></li>
+              <li style="margin-bottom:8px">Build C server: <code style="color:var(--cyan)">make</code> → upload binary</li>
+              <li style="margin-bottom:8px">Point your domain (free: <strong style="color:var(--warning)">freenom.com</strong>) to the server IP</li>
+            </ol>
+          </div>
+        </div>
+
+        <div class="card" style="border-color:rgba(57,255,20,0.3)">
+          <h3 style="color:var(--neon-green);margin-bottom:var(--space-md)">✅ Current Status — Demo Mode</h3>
+          <p style="font-size:0.82rem;color:var(--text-secondary);line-height:1.8">
+            KADEMICS is running in <strong style="color:var(--neon-green)">DEMO MODE</strong> right now. Everything works:
+            login, archive drill-down, oracle ratings, quiz taking with anti-cheat, nexus chat — all via smart localStorage mock data.
+            No external API key is needed for this mode.
+          </p>
+          <p style="font-size:0.78rem;color:var(--text-dim);margin-top:var(--space-sm)">
+            When you run <code style="color:var(--cyan)">make run</code> and the C server boots, the frontend auto-switches to real API mode.
+          </p>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ── View Request Modal ────────────────────────────────── -->
+<div class="view-modal-overlay" id="view-modal">
+  <div class="view-modal">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-lg)">
+      <h3 id="modal-req-title" style="color:var(--admin-red)">Request Details</h3>
+      <button onclick="closeViewModal()" style="background:none;border:none;color:var(--text-dim);font-size:1.2rem;cursor:pointer"><i class="fa fa-times"></i></button>
+    </div>
+    <div id="modal-req-content"></div>
+    <div style="display:flex;gap:var(--space-sm);margin-top:var(--space-xl)" id="modal-req-actions"></div>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div class="admin-toast-container" id="admin-toasts"></div>
+
+<script type="module">
+import { getAdminSession, adminLogout, getPendingRequests, getAllRequests, approveRequest, denyRequest, adminDirectAdd, getAdminItems, typeLabel } from './js/admin.js';
+
+// ── Auth check ────────────────────────────────────────────
+const admin = getAdminSession();
+if (!admin) {
+  const base = window.location.href.replace(/[^/]*$/, '');
+  window.location.href = base + 'admin.html';
+}
+document.getElementById('admin-name-display').textContent = `ADMIN: ${admin?.roll}`;
+
+// ── Global functions for onclick handlers ─────────────────
+window.doLogout      = adminLogout;
+window.showPanel     = showPanel;
+window.filterRequests= filterRequests;
+window.adminAdd      = adminAdd;
+window.createQuiz    = createQuiz;
+window.addQuestion   = addQuestion;
+window.addCorrectAnsField = addCorrectAnsField;
+window.approveReq    = (id) => reviewRequest(id, 'approve');
+window.denyReq       = (id) => reviewRequest(id, 'deny');
+window.viewReq       = viewReqDetail;
+window.closeViewModal= () => document.getElementById('view-modal').classList.remove('open');
+window.v             = (id) => document.getElementById(id)?.value?.trim() || '';
+
+// ── Panel navigation ──────────────────────────────────────
+function showPanel(name, el) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sidebar-item').forEach(s => s.classList.remove('active'));
+  document.getElementById(`panel-${name}`)?.classList.add('active');
+  el?.classList.add('active');
+  if (name === 'overview')  loadOverview();
+  if (name === 'requests')  loadRequests('ALL');
+  if (name === 'api-info')  loadApiInfo();
+}
+
+// ── Overview ──────────────────────────────────────────────
+function loadOverview() {
+  const all      = getAllRequests();
+  const pending  = all.filter(r => r.status === 'PENDING');
+  const approved = all.filter(r => r.status === 'APPROVED');
+  const denied   = all.filter(r => r.status === 'DENIED');
+  document.getElementById('ov-pending').textContent  = pending.length;
+  document.getElementById('ov-approved').textContent = approved.length;
+  document.getElementById('ov-denied').textContent   = denied.length;
+  document.getElementById('ov-total').textContent    = all.length;
+
+  // Pending badge in sidebar
+  const badge = document.getElementById('pending-badge');
+  badge.textContent = pending.length;
+  badge.style.display = pending.length > 0 ? 'inline-block' : 'none';
+
+  // Recent activity
+  const area = document.getElementById('recent-activity');
+  const recent = [...all].sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0,5);
+  if (!recent.length) {
+    area.innerHTML = '<p style="color:var(--text-dim);font-size:0.82rem">No activity yet.</p>';
+    return;
+  }
+  area.innerHTML = recent.map(r => `
+    <div style="display:flex;align-items:center;gap:var(--space-md);padding:10px;background:var(--card-bg);border:1px solid rgba(255,255,255,0.06);border-radius:var(--radius-md);margin-bottom:var(--space-sm)">
+      <span class="status-${r.status.toLowerCase()}">${r.status}</span>
+      <div style="flex:1">
+        <div style="font-size:0.82rem;font-weight:600">${typeLabel(r.type)}</div>
+        <div style="font-size:0.7rem;color:var(--text-dim)">${r.submitter?.name||'Unknown'} (${r.submitter?.roll||'?'}) · ${r.createdAt?.substring(0,10)||''}</div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="viewReq('${r.id}')"><i class="fa fa-eye"></i></button>
+    </div>`).join('');
+}
+
+// ── Requests Panel ────────────────────────────────────────
+let currentFilter = 'ALL';
+function loadRequests(filter) {
+  currentFilter = filter;
+  const all = getAllRequests();
+  const shown = filter === 'ALL' ? all : all.filter(r => r.status === filter);
+  const list = document.getElementById('requests-list');
+  if (!shown.length) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon"><i class="fa fa-inbox"></i></div><h3>No ${filter} requests</h3></div>`;
+    return;
+  }
+  list.innerHTML = shown.reverse().map(r => `
+    <div class="request-card">
+      <div>
+        <span class="req-type">${typeLabel(r.type)}</span>
+        <span class="status-${r.status.toLowerCase()}">${r.status}</span>
+        <div style="font-size:0.85rem;font-weight:600;margin-top:4px">${escHtml(r.data?.name || r.data?.title || r.data?.room || 'N/A')}</div>
+        <p class="req-meta">
+          <i class="fa fa-user"></i> ${escHtml(r.submitter?.name||'?')} (${r.submitter?.roll||'?'}) &nbsp;·&nbsp;
+          <i class="fa fa-clock"></i> ${r.createdAt?.substring(0,16)?.replace('T',' ')||''}
+          ${r.adminNote ? `<br><i class="fa fa-comment" style="color:var(--text-dim)"></i> ${escHtml(r.adminNote)}` : ''}
+        </p>
+      </div>
+      <div class="req-actions">
+        <button class="btn btn-secondary btn-sm" onclick="viewReq('${r.id}')"><i class="fa fa-eye"></i> VIEW</button>
+        ${r.status==='PENDING' ? `
+          <button class="btn btn-green btn-sm" onclick="approveReq('${r.id}')"><i class="fa fa-check"></i> APPROVE</button>
+          <button class="btn btn-red btn-sm" onclick="denyReq('${r.id}')"><i class="fa fa-times"></i> DENY</button>` : ''}
+      </div>
+    </div>`).join('');
+}
+
+function filterRequests(filter, el) {
+  document.querySelectorAll('.tab-filter').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  loadRequests(filter);
+}
+
+// ── Review Request ────────────────────────────────────────
+function reviewRequest(id, action) {
+  if (action === 'approve') {
+    approveRequest(id, admin);
+    toast('success', '✓ Request APPROVED — data added to system');
+  } else {
+    const note = prompt('Reason for denial (optional):') || '';
+    denyRequest(id, admin, note);
+    toast('info', '✗ Request DENIED');
+  }
+  loadRequests(currentFilter);
+  loadOverview();
+}
+
+// ── View Request Detail ───────────────────────────────────
+function viewReqDetail(id) {
+  const req = getAllRequests().find(r => r.id === id);
+  if (!req) return;
+  document.getElementById('modal-req-title').textContent = typeLabel(req.type);
+  document.getElementById('modal-req-content').innerHTML = `
+    <div style="display:grid;gap:var(--space-sm);font-size:0.83rem">
+      <div><span style="color:var(--text-dim)">Status:</span> <span class="status-${req.status.toLowerCase()}">${req.status}</span></div>
+      <div><span style="color:var(--text-dim)">Submitted by:</span> ${escHtml(req.submitter?.name||'?')} — Roll: ${req.submitter?.roll||'?'}</div>
+      <div><span style="color:var(--text-dim)">Submitted at:</span> ${req.createdAt?.replace('T',' ').substring(0,19)||''}</div>
+      ${req.reviewedBy ? `<div><span style="color:var(--text-dim)">Reviewed by:</span> ${req.reviewedBy}</div>` : ''}
+      ${req.adminNote  ? `<div><span style="color:var(--text-dim)">Admin note:</span> ${escHtml(req.adminNote)}</div>` : ''}
+      <hr style="border-color:rgba(255,255,255,0.08);margin:var(--space-sm) 0">
+      <div style="color:var(--text-dim);font-size:0.75rem;margin-bottom:4px">SUBMISSION DATA:</div>
+      <pre style="background:var(--void-3);border:1px solid rgba(0,243,255,0.1);border-radius:var(--radius-md);padding:var(--space-md);font-size:0.75rem;color:var(--neon-green);overflow-x:auto;white-space:pre-wrap">${JSON.stringify(req.data, null, 2)}</pre>
+    </div>`;
+  const actions = document.getElementById('modal-req-actions');
+  actions.innerHTML = req.status === 'PENDING' ? `
+    <button class="btn btn-green" onclick="approveReq('${id}');closeViewModal()"><i class="fa fa-check"></i> APPROVE</button>
+    <button class="btn btn-red"   onclick="denyReq('${id}');closeViewModal()"><i class="fa fa-times"></i> DENY</button>
+    <button class="btn btn-ghost" onclick="closeViewModal()">Close</button>` :
+    `<button class="btn btn-ghost" onclick="closeViewModal()">Close</button>`;
+  document.getElementById('view-modal').classList.add('open');
+}
+
+// ── Admin Direct Add ──────────────────────────────────────
+function adminAdd(type, data, requiredFieldId) {
+  const required = document.getElementById(requiredFieldId)?.value?.trim();
+  if (!required) { toast('error', '⚠ Required field is empty'); return; }
+  const item = adminDirectAdd(type, data);
+  toast('success', `✓ ${typeLabel(type)} added: "${data.name || data.room || data.title}"`);
+  // Clear inputs
+  const fieldIds = requiredFieldId.substring(0,2);
+  document.querySelectorAll(`[id^="${fieldIds}"]`).forEach(el => { if (el.tagName !== 'BUTTON') el.value = ''; });
+  loadOverview();
+}
+
+// ── Create Quiz ───────────────────────────────────────────
+let nextQuizId = 100;
+function createQuiz() {
+  const title   = v('aq-title');
+  const subject = v('aq-subject');
+  const pass    = v('aq-pass');
+  const status  = v('aq-status');
+  const time    = v('aq-time');
+  if (!title || !pass) { toast('error', '⚠ Quiz title and password are required'); return; }
+  const quiz = adminDirectAdd('ADD_QUIZ', { id: nextQuizId++, title, subject, password: pass, status, start_time: time, host_roll: admin.roll });
+  const list = document.getElementById('quiz-created-list');
+  const div  = document.createElement('div');
+  div.className = 'card';
+  div.innerHTML = `<p class="card-label">QUIZ CREATED</p><h4>${escHtml(title)}</h4><p class="card-desc">ID: ${quiz.id} &nbsp;|&nbsp; Password: <span style="color:var(--cyan)">${escHtml(pass)}</span> &nbsp;|&nbsp; Status: ${status}</p>`;
+  list.prepend(div);
+  toast('success', `✓ Quiz "${title}" created — ID: ${quiz.id}`);
+}
+
+// ── Add Question ──────────────────────────────────────────
+function addCorrectAnsField() {
+  const container = document.getElementById('qq-ans-container');
+  const sel = document.createElement('select');
+  sel.className = 'form-select qq-ans-select';
+  sel.innerHTML = '<option>A</option><option>B</option><option>C</option><option>D</option>';
+  container.appendChild(sel);
+}
+
+function addQuestion() {
+  const quizId = v('qq-id');
+  const q      = v('qq-q');
+  const a      = v('qq-a');
+  const b      = v('qq-b');
+  if (!quizId || !q || !a || !b) { toast('error', '⚠ Quiz ID, question, and options A/B required'); return; }
+  
+  const selects = document.querySelectorAll('.qq-ans-select');
+  const correctVals = Array.from(selects).map(s => s.value);
+  const correct = correctVals.join(',');
+
+  adminDirectAdd('ADD_QUESTION', {
+    quiz_id: parseInt(quizId), question_text: q,
+    option_a: a, option_b: b, option_c: v('qq-c'), option_d: v('qq-d'),
+    correct: correct, marks: parseInt(v('qq-marks')) || 1
+  });
+  toast('success', '✓ Question added');
+  document.getElementById('qq-ans-container').innerHTML = '<select class="form-select qq-ans-select"><option>A</option><option>B</option><option>C</option><option>D</option></select>';
+}
+
+// ── API Info ──────────────────────────────────────────────
+async function loadApiInfo() {
+  let mode = 'DEMO (Live Server)';
+  try {
+    const r = await fetch('/api/ping', { signal: AbortSignal.timeout(600) });
+    if (r.ok) mode = 'LIVE (C Backend on port 8080)';
+  } catch {}
+  document.getElementById('current-mode-text').innerHTML = `
+    Running in <strong style="color:${mode.includes('LIVE') ? 'var(--neon-green)' : 'var(--warning)'}">${mode}</strong>.<br>
+    ${mode.includes('LIVE') ? 'The C backend is running and handling all API calls.' : 'Using smart mock data stored in localStorage. All features work. No API key needed.'}`;
+}
+
+// ── Toast ─────────────────────────────────────────────────
+function toast(type, msg) {
+  const c = document.getElementById('admin-toasts');
+  const t = document.createElement('div');
+  t.className = `admin-toast ${type}`;
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 4500);
+}
+function escHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ── Init ──────────────────────────────────────────────────
+loadOverview();
+</script>
+</body>
+</html>

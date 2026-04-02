@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KADEMICS — Admin Access Terminal</title>
+  <meta name="description" content="KADEMICS Admin restricted access.">
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    body { overflow: hidden; }
+    .admin-login-wrap {
+      min-height: 100vh; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: var(--space-lg); position: relative; z-index: 1;
+    }
+    /* Crimson scanlines for admin */
+    body::after {
+      content: ''; position: fixed; inset: 0; z-index: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent, transparent 2px,
+        rgba(255,0,60,0.015) 2px, rgba(255,0,60,0.015) 4px
+      );
+      pointer-events: none;
+    }
+    .stars { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+    .star  { position: absolute; background: rgba(255,80,80,0.6); border-radius: 50%; animation: float linear infinite; }
+
+    .admin-badge {
+      background: rgba(255,0,60,0.1); border: 1px solid rgba(255,0,60,0.4);
+      color: var(--laser-red); border-radius: var(--radius-md);
+      padding: 6px 20px; font-size: 0.7rem; letter-spacing: 0.3em;
+      text-transform: uppercase; margin-bottom: var(--space-lg);
+      animation: glow-pulse 2s infinite;
+    }
+    .hero-brand { font-family: var(--font-head); font-size: clamp(2rem,5vw,3.5rem); font-weight:900; color: var(--laser-red); letter-spacing:0.3em; text-shadow: 0 0 30px rgba(255,0,60,0.5); }
+    .hero-sub   { font-size:0.75rem; letter-spacing:0.3em; color:var(--text-dim); text-transform:uppercase; margin-bottom:var(--space-2xl); }
+
+    .admin-card { width: 100%; max-width: 420px; animation: slide-up 0.4s ease; }
+    .terminal-header-red {
+      background: rgba(255,0,60,0.08); border-bottom: 1px solid rgba(255,0,60,0.2);
+      padding: 10px var(--space-md); border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+      display: flex; align-items: center; gap: var(--space-sm);
+      font-size: 0.7rem; letter-spacing: 0.2em; color: var(--laser-red);
+    }
+    .admin-body {
+      background: rgba(5,5,8,0.92); border: 1px solid rgba(255,0,60,0.3);
+      border-top: none; border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+      padding: var(--space-xl); backdrop-filter: blur(16px);
+    }
+    .admin-sys-msg { font-size:0.7rem; letter-spacing:0.1em; color:var(--laser-red); margin-bottom:var(--space-lg); font-family:var(--font-body); }
+    .admin-sys-msg span { color:#fff; }
+
+    .admin-error { font-size:0.75rem; color:var(--laser-red); min-height:20px; margin-bottom:var(--space-sm); text-shadow: 0 0 8px rgba(255,0,60,0.5); }
+
+    .form-input-red {
+      width:100%; background:rgba(255,0,60,0.05); border:1px solid rgba(255,0,60,0.25);
+      color:var(--text-primary); font-family:var(--font-body); font-size:0.85rem;
+      padding:10px 14px; border-radius:var(--radius-md); outline:none; transition:var(--transition);
+    }
+    .form-input-red:focus  { border-color:var(--laser-red); box-shadow:0 0 0 2px rgba(255,0,60,0.15); }
+    .form-input-red::placeholder { color:var(--text-dim); }
+    .form-label-red { display:block; font-size:0.72rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--laser-red); margin-bottom:var(--space-sm); }
+
+    .btn-admin {
+      width:100%; padding:14px; background:var(--laser-red); color:#fff; border:none;
+      border-radius:var(--radius-md); font-family:var(--font-body); font-size:0.85rem;
+      font-weight:600; letter-spacing:0.15em; text-transform:uppercase; cursor:pointer;
+      transition:var(--transition); box-shadow:0 0 16px rgba(255,0,60,0.4);
+      display:flex; align-items:center; justify-content:center; gap:10px;
+    }
+    .btn-admin:hover { box-shadow: 0 0 28px rgba(255,0,60,0.7); transform:translateY(-1px); }
+    .btn-admin:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
+
+    .back-link { font-size:0.72rem; color:var(--text-dim); text-align:center; margin-top:var(--space-lg); }
+    .back-link a { color:var(--cyan); text-decoration:none; }
+    .back-link a:hover { text-decoration:underline; }
+
+    .warning-box {
+      background: rgba(255,140,0,0.08); border:1px solid rgba(255,140,0,0.3);
+      border-radius:var(--radius-md); padding:10px 14px; font-size:0.72rem;
+      color:var(--warning); margin-bottom:var(--space-md); letter-spacing:0.05em;
+    }
+  </style>
+</head>
+<body>
+<div class="stars" id="stars-container"></div>
+
+<div class="admin-login-wrap">
+  <div class="admin-badge"><i class="fa fa-shield-halved"></i> &nbsp; RESTRICTED SECTOR</div>
+
+  <div style="display:flex;align-items:center;gap:var(--space-md);margin-bottom:var(--space-sm)">
+    <img src="assets/logo.png" alt="K" style="width:70px;height:70px;filter:drop-shadow(0 0 12px rgba(255,0,60,0.6));object-fit:contain" onerror="this.style.display='none'">
+    <div class="hero-brand">KADEMICS</div>
+  </div>
+  <p class="hero-sub">ADMINISTRATOR ACCESS TERMINAL</p>
+
+  <div class="admin-card">
+    <div class="terminal-header-red">
+      <div class="terminal-dot red" style="width:8px;height:8px;border-radius:50%;background:#ff5f57"></div>
+      <div class="terminal-dot" style="width:8px;height:8px;border-radius:50%;background:rgba(255,0,60,0.3)"></div>
+      <div class="terminal-dot" style="width:8px;height:8px;border-radius:50%;background:rgba(255,0,60,0.3)"></div>
+      <span style="margin-left:8px">ADMIN CONTROL — CLASSIFIED UPLINK</span>
+    </div>
+    <div class="admin-body">
+      <p class="admin-sys-msg">
+        [<span>WARNING</span>]: RESTRICTED SECTOR.<br>
+        UNAUTHORIZED ACCESS IS LOGGED AND PROSECUTED.<br>
+        AUTHORIZED ADMIN CREDENTIALS REQUIRED.
+      </p>
+
+      <div class="form-group">
+        <label class="form-label-red" for="admin-email">
+          <i class="fa fa-id-badge"></i> &nbsp; ADMIN EMAIL
+        </label>
+        <input class="form-input-red" id="admin-email" type="email"
+               placeholder="admin@kiit.ac.in" autocomplete="username">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label-red" for="admin-pass">
+          <i class="fa fa-key"></i> &nbsp; ADMIN PASSPHRASE
+        </label>
+        <div style="position:relative">
+          <input class="form-input-red" id="admin-pass" type="password"
+                 placeholder="••••••••••••••" autocomplete="current-password"
+                 style="padding-right:44px">
+          <button onclick="togglePass()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text-dim);cursor:pointer" id="eye-btn">
+            <i class="fa fa-eye"></i>
+          </button>
+        </div>
+      </div>
+
+      <p class="admin-error" id="admin-error"></p>
+
+      <button class="btn-admin" id="btn-admin-login">
+        <i class="fa fa-lock-open"></i> OVERRIDE AND ENGAGE
+      </button>
+
+      <div class="back-link" style="margin-top:var(--space-md)">
+        <a href="index.html"><i class="fa fa-users"></i> Student Login →</a>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top:var(--space-xl);padding:12px 20px;background:rgba(255,140,0,0.06);border:1px solid rgba(255,140,0,0.2);border-radius:var(--radius-md);max-width:420px;text-align:center">
+    <p style="font-size:0.68rem;color:var(--text-dim);letter-spacing:0.1em">
+      <i class="fa fa-triangle-exclamation" style="color:var(--warning)"></i>
+      &nbsp;ADMIN SESSION EXPIRES IN 2 HOURS. ALL ACTIONS ARE LOGGED.
+    </p>
+  </div>
+</div>
+
+<script>
+// Inline script — no module needed for simple admin login
+function togglePass() {
+  const f = document.getElementById('admin-pass');
+  const e = document.getElementById('eye-btn').querySelector('i');
+  if (f.type === 'password') { f.type = 'text'; e.className = 'fa fa-eye-slash'; }
+  else { f.type = 'password'; e.className = 'fa fa-eye'; }
+}
+
+// Generate red star field
+const container = document.getElementById('stars-container');
+for (let i = 0; i < 80; i++) {
+  const star = document.createElement('div');
+  star.className = 'star';
+  const size = Math.random() * 2 + 0.5;
+  star.style.cssText = `width:${size}px;height:${size}px;left:${Math.random()*100}%;top:${Math.random()*100}%;opacity:${Math.random()*0.5+0.1};animation-duration:${Math.random()*25+10}s;animation-delay:${Math.random()*-20}s;`;
+  container.appendChild(star);
+}
+
+// ── Admin Login Handler ──────────────────────────────────────────────────
+const ADMIN_EMAIL = '2505022@kiit.ac.in';
+const ADMIN_PASS  = 'Kademics20180704';
+
+function navTo(p) {
+  const base = window.location.href.replace(/[^/]*$/, '');
+  window.location.href = base + p;
+}
+
+// Redirect if already admin
+try {
+  const raw = sessionStorage.getItem('kademics_admin');
+  if (raw) {
+    const ad = JSON.parse(raw);
+    if (Date.now() - ad.loginAt < 7200000) navTo('admin-dashboard.html');
+  }
+} catch {}
+
+document.getElementById('btn-admin-login').addEventListener('click', doAdminLogin);
+document.getElementById('admin-pass').addEventListener('keydown', e => { if (e.key === 'Enter') doAdminLogin(); });
+document.getElementById('admin-email').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('admin-pass').focus(); });
+
+async function doAdminLogin() {
+  const email = document.getElementById('admin-email').value.trim().toLowerCase();
+  const pass  = document.getElementById('admin-pass').value;
+  const errEl = document.getElementById('admin-error');
+  const btn   = document.getElementById('btn-admin-login');
+  errEl.textContent = '';
+
+  if (!email || !pass) { errEl.textContent = '[WARNING]: ALL FIELDS REQUIRED.'; return; }
+
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner" style="width:16px;height:16px;border-color:rgba(255,255,255,0.3);border-top-color:#fff"></div> &nbsp;VERIFYING...';
+
+  // Simulate C backend auth check delay: strcmp(email, ADMIN_EMAIL) && strcmp(pass, ADMIN_PASS)
+  await new Promise(r => setTimeout(r, 600));
+
+  if (email === ADMIN_EMAIL && pass === ADMIN_PASS) {
+    const token = btoa('ADMIN:' + Date.now() + ':KADEMICS_CLASSIFIED');
+    sessionStorage.setItem('kademics_admin', JSON.stringify({
+      email: ADMIN_EMAIL, roll: '2505022', name: 'System Administrator',
+      token, loginAt: Date.now()
+    }));
+    navTo('admin-dashboard.html');
+  } else {
+    errEl.textContent = '[ACCESS DENIED]: CREDENTIALS INVALID. ATTEMPT LOGGED.';
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fa fa-lock-open"></i> OVERRIDE AND ENGAGE';
+    // Flash the card red
+    document.querySelector('.admin-body').style.boxShadow = '0 0 20px rgba(255,0,60,0.4)';
+    setTimeout(() => document.querySelector('.admin-body').style.boxShadow = '', 600);
+  }
+}
+</script>
+</body>
+</html>

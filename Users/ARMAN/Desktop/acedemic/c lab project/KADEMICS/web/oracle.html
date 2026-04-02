@@ -1,0 +1,164 @@
+<!-- KADEMICS — oracle.html (RATING: Teacher Ratings) -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KADEMICS — RATING | Teacher Ratings</title>
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    .teacher-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:var(--space-lg); }
+  </style>
+</head>
+<body>
+<nav class="nav">
+  <a class="nav-left" href="dashboard.html"><img src="assets/logo.png" alt="KADEMICS" class="logo-img"><span class="brand-name">KADEMICS</span></a>
+  <div class="nav-search" style="position:relative">
+    <i class="fa fa-search search-icon"></i>
+    <input type="text" id="nav-search-input" placeholder="SCANNING NEXUS...">
+    <div class="search-scanning-line"></div>
+    <div class="search-results-dropdown" id="search-results-dropdown"></div>
+  </div>
+  <div class="nav-right">
+    <nav class="nav-links">
+      <a class="nav-link" href="archive.html"><i class="fa fa-folder"></i> Notes</a>
+      <a class="nav-link active" href="oracle.html"><i class="fa fa-star"></i> Rating</a>
+      <a class="nav-link" href="gauntlet.html"><i class="fa fa-gamepad"></i> Quizzing</a>
+      <a class="nav-link" href="nexus.html"><i class="fa fa-comments"></i> Chat</a>
+    </nav>
+    <div class="profile-disk" id="profile-disk" style="position:relative;cursor:pointer" title="View Profile" onclick="window.location.href=window.location.href.replace(/[^/]*$/, '')+'profile.html'">
+      <img id="nav-avatar" src="assets/avatar-default.png" alt="Profile">
+      <div class="status-ring"></div>
+    </div>
+  </div>
+</nav>
+
+<div class="main-content">
+  <div class="page-container">
+    <p class="section-title">[ RATING ]</p>
+    <h2 class="section-heading">Mentor Dossiers</h2>
+
+    <!-- Teacher Grid -->
+    <div class="teacher-grid card-stagger" id="teacher-grid">
+      <div class="loading" style="padding:var(--space-xl)"><div class="spinner"></div>&nbsp;DECRYPTING DOSSIERS...</div>
+    </div>
+  </div>
+</div>
+
+<!-- FAB: Add Teacher -->
+<button class="fab" id="fab-add-teacher" title="Suggest Teacher" onclick="window.openAddTeacherModal&&window.openAddTeacherModal()">
+  <i class="fa fa-plus"></i>
+</button>
+
+<!-- Add Teacher Modal -->
+<div class="modal-overlay" id="teacher-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">ADD MENTOR DOSSIER</span>
+      <button class="modal-close" onclick="closeModal('teacher-modal')"><i class="fa fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Teacher Name</label><input class="form-input" id="t-name" placeholder="Prof. Full Name"></div>
+      <div class="form-group"><label class="form-label">Photo URL (optional)</label><input class="form-input" id="t-photo" placeholder="https://..."></div>
+      <div class="form-group"><label class="form-label">Qualification</label><input class="form-input" id="t-qual" placeholder="e.g. PhD in Computer Science, IIT Delhi"></div>
+      <div class="form-group"><label class="form-label">Bio / Description</label><textarea class="form-textarea" id="t-bio" placeholder="Brief description of the teacher..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" id="t-cancel">Cancel</button>
+      <button class="btn btn-green btn-sm" id="t-submit"><i class="fa fa-satellite-dish"></i> TRANSMIT</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+
+<script type="module">
+import { requireAuth, initProfileUI } from './js/auth.js';
+import { initSearch } from './js/search.js';
+import { API } from './js/api.js';
+import { queueRequest } from './js/admin.js';
+
+const user = await requireAuth();
+
+initProfileUI(user);
+initSearch();
+
+// Set window globals for onclick
+window.openAddTeacherModal = () => document.getElementById('teacher-modal').classList.add('open');
+window.closeModal = (id) => document.getElementById(id).classList.remove('open');
+
+// Also addEventListener as backup
+document.getElementById('fab-add-teacher')?.addEventListener('click', () => document.getElementById('teacher-modal').classList.add('open'));
+document.getElementById('t-cancel')?.addEventListener('click', () => document.getElementById('teacher-modal').classList.remove('open'));
+document.getElementById('t-submit')?.addEventListener('click', submitTeacher);
+
+async function submitTeacher() {
+  const name  = document.getElementById('t-name')?.value.trim();
+  const photo = document.getElementById('t-photo')?.value.trim()||'';
+  const qual  = document.getElementById('t-qual')?.value.trim()||'';
+  const bio   = document.getElementById('t-bio')?.value.trim()||'';
+  if (!name) { showToast('error','Name required'); return; }
+
+  // Send to request queue — admin must approve
+  queueRequest('ADD_ORACLE_TEACHER', {name,photo,bio,qualification:qual,avg_rating:0}, {roll:user.roll, name:user.name});
+  document.getElementById('teacher-modal').classList.remove('open');
+  showToast('info', `[NEXUS]: RATING REQUEST SENT — Awaiting admin approval for "${name}"`);
+}
+
+function diamonds(avg) {
+  let html = '';
+  for (let i=1; i<=5; i++) {
+    html += `<span class="diamond ${i<=Math.round(avg)?'':'empty'}">◆</span>`;
+  }
+  return html;
+}
+
+async function loadTeachers() {
+  const grid = document.getElementById('teacher-grid');
+  grid.innerHTML = '<div class="loading" style="padding:var(--space-xl)"><div class="spinner"></div>&nbsp;LOADING...</div>';
+  let teachers = [];
+  try { teachers = await API.getOracleTeachers(); } catch(e){ teachers=[]; }
+  grid.innerHTML = '';
+  if (!teachers.length) {
+    grid.innerHTML = `<div class="empty-state"><div class="empty-icon">⭐</div><h3>No teachers yet</h3><p>Be the first to add a mentor dossier.</p></div>`;
+    return;
+  }
+  teachers.forEach(t => {
+    const card = document.createElement('div');
+    card.className = 'card teacher-card corner-deco';
+    card.innerHTML = `
+      <div class="photo-wrap">
+        ${t.photo ? `<img src="${t.photo}" alt="${escHtml(t.name)}">` : `<i class="fa fa-user" style="font-size:2rem;color:var(--cyan);opacity:0.4"></i>`}
+      </div>
+      <div class="t-name">${escHtml(t.name)}</div>
+      <div class="t-rating">${diamonds(t.avg_rating||0)} <span class="rating-num">${(t.avg_rating||0).toFixed(1)}</span></div>
+      <p class="card-desc" style="text-align:center;font-size:0.75rem">${escHtml(t.bio||'').substring(0,80)}${(t.bio||'').length>80?'...':''}</p>
+      <div style="display:flex;gap:var(--space-sm);margin-top:var(--space-md)">
+        <a href="teacher-dossier.html?id=${t.id}" class="btn btn-secondary btn-sm" style="flex:1">
+          <i class="fa fa-id-card"></i> DOSSIER
+        </a>
+        <a href="teacher-dossier.html?id=${t.id}#comments" class="btn btn-violet btn-sm" style="flex:1">
+          <i class="fa fa-comment"></i> COMMENT
+        </a>
+      </div>`;
+    grid.appendChild(card);
+  });
+}
+
+function showToast(type, msg) {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast toast-${type}`;
+  t.innerHTML = `<i class="fa fa-${type==='success'?'check':type==='error'?'times':'info-circle'}"></i> ${msg}`;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 4000);
+}
+function escHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+loadTeachers();
+</script>
+</body>
+</html>

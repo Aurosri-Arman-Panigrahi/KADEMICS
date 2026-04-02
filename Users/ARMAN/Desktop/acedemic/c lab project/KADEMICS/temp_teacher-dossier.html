@@ -1,0 +1,235 @@
+<!-- KADEMICS * teacher-dossier.html (Full Teacher Profile + Rating + Comments) -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KADEMICS * Teacher Dossier</title>
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    .dossier-header { display:flex; gap:var(--space-xl); align-items:flex-start; margin-bottom:var(--space-xl); flex-wrap:wrap; }
+    .dossier-photo  { width:140px; height:140px; border-radius:50%; border:3px solid rgba(0,243,255,0.5); object-fit:cover; flex-shrink:0; background:var(--void-3); display:flex; align-items:center; justify-content:center; }
+    .star-picker    { display:flex; gap:6px; font-size:2rem; margin-bottom:var(--space-md); cursor:pointer; }
+    .star-pick      { color:var(--text-dim); transition:var(--transition); }
+    .star-pick.lit  { color:var(--cyan); text-shadow:var(--cyan-glow); }
+    .comment-item   { background:var(--card-bg); border:var(--cyan-border); border-radius:var(--radius-md); padding:var(--space-md); margin-bottom:var(--space-sm); }
+    .comment-meta   { font-size:0.7rem; color:var(--text-dim); margin-bottom:4px; }
+    .section-pill   { display:inline-block; padding:3px 10px; border-radius:20px; font-size:0.65rem; letter-spacing:0.1em; background:var(--cyan-dim); color:var(--cyan); border:1px solid rgba(0,243,255,0.3); margin-right:6px; cursor:pointer; transition:var(--transition); }
+    .section-pill:hover, .section-pill.active { background:var(--cyan); color:var(--void); }
+  </style>
+</head>
+<body>
+<nav class="nav">
+  <a class="nav-left" href="dashboard.html"><img src="assets/logo.png" alt="KADEMICS" class="logo-img"><span class="brand-name">KADEMICS</span></a>
+  <div class="nav-right">
+    <nav class="nav-links">
+      <a class="nav-link" href="oracle.html"><i class="fa fa-arrow-left"></i> Back to Oracle</a>
+    </nav>
+    <div class="profile-disk" id="profile-disk" style="position:relative;cursor:pointer" title="View Profile" onclick="window.location.href=window.location.href.replace(/[^/]*$/, '')+'profile.html'">
+      <img id="nav-avatar" src="assets/avatar-default.png" alt="Profile">
+      <div class="status-ring"></div>
+    </div>
+  </div>
+</nav>
+
+<div class="main-content">
+  <div class="page-container" style="max-width:900px;margin:0 auto">
+
+    <!-- Teacher Header -->
+    <div id="dossier-header" class="dossier-header">
+      <div class="dossier-photo" id="t-photo-wrap">
+        <i class="fa fa-user" style="font-size:3rem;color:var(--cyan);opacity:0.3"></i>
+      </div>
+      <div style="flex:1">
+        <p class="section-title">[ MENTOR DOSSIER ]</p>
+        <h1 id="t-name" style="font-size:1.8rem;text-shadow:var(--cyan-glow)">Loading...</h1>
+        <p id="t-qual" style="color:var(--violet);font-size:0.8rem;margin-bottom:var(--space-sm)"></p>
+        <p id="t-bio" class="text-dim" style="font-size:0.85rem;line-height:1.7;margin-bottom:var(--space-md)"></p>
+        <div style="display:flex;align-items:center;gap:var(--space-md)">
+          <div id="t-diamonds" class="rating-display"></div>
+          <span id="t-avg" style="font-family:var(--font-head);font-size:1.5rem;color:var(--cyan);text-shadow:var(--cyan-glow)">*</span>
+          <span style="font-size:0.75rem;color:var(--text-dim)">/ 5.0</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Section Tabs / Rating -->
+    <h2 style="margin-bottom:var(--space-md)">Sections & Reviews</h2>
+    <div id="section-pills" style="margin-bottom:var(--space-lg);display:flex;flex-wrap:wrap;gap:var(--space-sm)">
+      <div class="loading"><div class="spinner"></div>&nbsp;Loading sections...</div>
+    </div>
+
+    <!-- Comments for selected section -->
+    <div id="comments-area"></div>
+
+    <!-- Rate this teacher -->
+    <div class="card" style="margin-top:var(--space-xl)">
+      <h3 style="margin-bottom:var(--space-md)">Rate this Mentor</h3>
+      <div class="star-picker" id="star-picker">
+        <span class="star-pick" onclick="setRating(1)" data-v="1">?</span>
+        <span class="star-pick" onclick="setRating(2)" data-v="2">?</span>
+        <span class="star-pick" onclick="setRating(3)" data-v="3">?</span>
+        <span class="star-pick" onclick="setRating(4)" data-v="4">?</span>
+        <span class="star-pick" onclick="setRating(5)" data-v="5">?</span>
+      </div>
+      <button class="btn btn-primary btn-sm" id="btn-rate" onclick="submitRating()" disabled>Submit Rating</button>
+    </div>
+
+    <!-- Add Comment -->
+    <div class="card" style="margin-top:var(--space-md)" id="comment-section">
+      <h3 style="margin-bottom:var(--space-md)">Add Review</h3>
+      <div class="form-group">
+        <label class="form-label">Section</label>
+        <select class="form-select" id="comment-section-select"></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Your Review</label>
+        <textarea class="form-textarea" id="comment-text" placeholder="Share your experience with this mentor..."></textarea>
+      </div>
+      <button class="btn btn-violet btn-sm" onclick="submitComment()"><i class="fa fa-paper-plane"></i> Submit Review</button>
+    </div>
+
+  </div>
+</div>
+<div class="toast-container" id="toast-container"></div>
+
+<script type="module">
+import { requireAuth, initProfileUI } from './js/auth.js';
+import { API } from './js/api.js';
+
+const user = await requireAuth();
+
+initProfileUI(user);
+
+const params   = new URLSearchParams(location.search);
+const teacherId = parseInt(params.get('id'));
+let selectedRating = 0;
+let allSections = [];
+let activeSectionId = null;
+
+window.setRating      = setRating;
+window.submitRating   = submitRating;
+window.submitComment  = submitComment;
+window.loadSection    = loadSection;
+
+async function loadDossier() {
+  const data = await API.getTeacherDossier(teacherId);
+  document.title = `KADEMICS * ${data.name}`;
+  document.getElementById('t-name').textContent = data.name || '*';
+  document.getElementById('t-qual').textContent = data.qualification || '';
+  document.getElementById('t-bio').textContent  = data.bio || '';
+
+  const avg = data.avg_rating || 0;
+  document.getElementById('t-avg').textContent = avg.toFixed(1);
+  document.getElementById('t-diamonds').innerHTML = diamonds(avg);
+
+  if (data.photo) {
+    const w = document.getElementById('t-photo-wrap');
+    w.innerHTML = '';
+    const img = document.createElement('img');
+    img.src = data.photo; img.alt = data.name;
+    img.style.cssText='width:140px;height:140px;border-radius:50%;object-fit:cover;';
+    w.appendChild(img);
+  }
+
+  // Sections
+  allSections = data.sections || [];
+  renderSectionPills();
+  if (allSections.length) loadSection(allSections[0].id);
+}
+
+function renderSectionPills() {
+  const pArea = document.getElementById('section-pills');
+  const sel   = document.getElementById('comment-section-select');
+  pArea.innerHTML = ''; sel.innerHTML = '';
+  allSections.forEach(s => {
+    const pill = document.createElement('span');
+    pill.className = 'section-pill';
+    pill.textContent = s.section_name || s.name;
+    pill.onclick = () => loadSection(s.id, pill);
+    pArea.appendChild(pill);
+
+    const opt  = document.createElement('option');
+    opt.value  = s.id; opt.textContent = s.section_name || s.name;
+    sel.appendChild(opt);
+  });
+  if (!allSections.length) {
+    pArea.innerHTML = '<p class="text-dim" style="font-size:0.8rem">No sections added yet.</p>';
+  }
+}
+
+async function loadSection(sectionId, pillEl=null) {
+  activeSectionId = sectionId;
+  document.querySelectorAll('.section-pill').forEach(p => p.classList.remove('active'));
+  if (pillEl) pillEl.classList.add('active');
+
+  const comments = await API.getComments(sectionId);
+  const area = document.getElementById('comments-area');
+  area.innerHTML = '';
+  (comments || []).forEach(c => {
+    const div = document.createElement('div');
+    div.className = 'comment-item animate-fade-in';
+    div.innerHTML = `
+      <p class="comment-meta"><i class="fa fa-user" style="color:var(--cyan)"></i> ${escHtml(c.commenter_name||c.roll)} &nbsp;|&nbsp; ${c.created_at?.substring(0,10)||''}</p>
+      <p style="font-size:0.85rem;line-height:1.6">${escHtml(c.message||c.content||'')}</p>`;
+    area.appendChild(div);
+  });
+  if (!area.children.length) {
+    area.innerHTML = '<p class="text-dim" style="font-size:0.8rem;padding:var(--space-md)">No reviews yet. Be the first!</p>';
+  }
+}
+
+function setRating(v) {
+  selectedRating = v;
+  document.querySelectorAll('.star-pick').forEach(s => {
+    s.classList.toggle('lit', parseInt(s.dataset.v) <= v);
+  });
+  document.getElementById('btn-rate').disabled = false;
+}
+
+async function submitRating() {
+  if (!selectedRating) return;
+  try {
+    const r2 = await API.rateTeacher({ teacher_id:teacherId, roll:user.roll, score:selectedRating, section_id:activeSectionId||0 });
+    document.getElementById('t-avg').textContent = r2.new_avg?.toFixed(1) || '*';
+    document.getElementById('t-diamonds').innerHTML = diamonds(r2.new_avg||0);
+    showToast('success', `Rating submitted: ${selectedRating} ?`);
+  } catch(e) { showToast('error','Failed to submit rating'); }
+}
+
+async function submitComment() {
+  const sectionId = document.getElementById('comment-section-select')?.value;
+  const msg       = document.getElementById('comment-text')?.value.trim();
+  if (!msg) { showToast('error','Review cannot be empty'); return; }
+  try {
+    await API.addComment({ section_id:sectionId, roll:user.roll, message:msg });
+    document.getElementById('comment-text').value = '';
+    showToast('success','Review transmitted!');
+    if (sectionId) loadSection(sectionId);
+  } catch(e) { showToast('error','Submission failed'); }
+}
+
+function diamonds(avg) {
+  let h = '';
+  for (let i=1;i<=5;i++) h += `<span style="color:${i<=Math.round(avg)?'var(--cyan)':'var(--text-dim)'};font-size:1.2rem">?</span>`;
+  return h;
+}
+function showToast(type, msg) {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast toast-${type}`;
+  t.innerHTML = `<i class="fa fa-${type==='success'?'check':type==='error'?'times':'info-circle'}"></i> ${msg}`;
+  c.appendChild(t); setTimeout(() => t.remove(), 4000);
+}
+function escHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+if (teacherId) loadDossier();
+else { document.getElementById('t-name').textContent = 'DOSSIER NOT FOUND'; }
+</script>
+</body>
+</html>

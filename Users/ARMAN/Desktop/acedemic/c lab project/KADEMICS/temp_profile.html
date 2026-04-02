@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KADEMICS * Identity Disk</title>
+  <meta name="description" content="KADEMICS student profile * view your stats, rank, and submission history.">
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    /* -- Profile avatar ring */
+    .avatar-wrap {
+      position:relative; width:120px; height:120px; margin:0 auto var(--space-lg);
+    }
+    .avatar-wrap img {
+      width:120px; height:120px; border-radius:50%; object-fit:cover;
+      border:3px solid var(--cyan); box-shadow: var(--cyan-glow);
+    }
+    .avatar-ring {
+      position:absolute; inset:-6px; border-radius:50%;
+      border:2px dashed rgba(0,243,255,0.4); animation:spin 12s linear infinite;
+    }
+    .rank-badge {
+      display:inline-block; padding:4px 14px; border-radius:20px;
+      background:rgba(188,19,254,0.15); border:1px solid rgba(188,19,254,0.4);
+      color:var(--violet); font-size:0.7rem; letter-spacing:0.2em; text-transform:uppercase;
+      box-shadow:0 0 8px rgba(188,19,254,0.2);
+    }
+
+    /* -- Stats grid */
+    .stats-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:var(--space-md); margin-bottom:var(--space-xl); }
+    .stat-chip {
+      background:var(--card-bg); border:var(--cyan-border);
+      border-radius:var(--radius-md); padding:var(--space-md); text-align:center;
+    }
+    .stat-chip .n { font-family:var(--font-head); font-size:1.8rem; color:var(--cyan); text-shadow:var(--cyan-glow); }
+    .stat-chip .l { font-size:0.65rem; color:var(--text-dim); letter-spacing:0.15em; text-transform:uppercase; margin-top:4px; }
+
+    /* -- Submission History */
+    .submission-card {
+      background:var(--card-bg); border:var(--cyan-border); border-radius:var(--radius-md);
+      padding:var(--space-md); margin-bottom:var(--space-sm); transition:var(--transition);
+      display:grid; grid-template-columns:auto 1fr auto; gap:var(--space-md); align-items:center;
+    }
+    .submission-card:hover { border-color:rgba(0,243,255,0.5); transform:translateX(4px); }
+
+    .sub-icon {
+      width:40px; height:40px; border-radius:var(--radius-md); display:flex; align-items:center;
+      justify-content:center; font-size:1.1rem; flex-shrink:0;
+    }
+    .sub-icon.pending  { background:rgba(255,140,0,0.12);  color:var(--warning); border:1px solid rgba(255,140,0,0.3); }
+    .sub-icon.approved { background:rgba(57,255,20,0.12);  color:var(--neon-green); border:1px solid rgba(57,255,20,0.3); }
+    .sub-icon.denied   { background:rgba(100,100,100,0.1); color:#888; border:1px solid #444; }
+
+    .sub-meta { font-size:0.7rem; color:var(--text-dim); margin-top:3px; }
+    .sub-status { font-size:0.7rem; padding:4px 10px; border-radius:10px; white-space:nowrap; }
+    .sub-status.pending  { background:rgba(255,140,0,0.1);  color:var(--warning);    border:1px solid rgba(255,140,0,0.3); }
+    .sub-status.approved { background:rgba(57,255,20,0.1);  color:var(--neon-green); border:1px solid rgba(57,255,20,0.3); }
+    .sub-status.denied   { background:rgba(100,100,100,0.1);color:#888;              border:1px solid #555; }
+
+    /* Profile tab nav */
+    .ptabs { display:flex; gap:var(--space-sm); margin-bottom:var(--space-xl); border-bottom:1px solid rgba(0,243,255,0.1); padding-bottom:var(--space-md); }
+    .ptab { padding:8px 20px; border-radius:var(--radius-md); font-size:0.78rem; letter-spacing:0.1em; cursor:pointer; background:transparent; border:1px solid transparent; color:var(--text-dim); transition:var(--transition); font-family:var(--font-body); text-transform:uppercase; }
+    .ptab:hover, .ptab.active { color:var(--cyan); border-color:rgba(0,243,255,0.3); background:var(--cyan-dim); text-shadow:var(--cyan-glow); }
+
+    .ptab-panel { display:none; }
+    .ptab-panel.active { display:block; animation:fade-in 0.2s ease; }
+
+    /* Approved item highlight */
+    .approved-live-tag {
+      display:inline-flex; align-items:center; gap:6px; font-size:0.65rem; letter-spacing:0.1em;
+      background:rgba(57,255,20,0.1); color:var(--neon-green); border:1px solid rgba(57,255,20,0.3);
+      border-radius:10px; padding:2px 8px; margin-left:8px;
+    }
+    .approved-live-tag::before {
+      content:''; display:inline-block; width:6px; height:6px; border-radius:50%;
+      background:var(--neon-green); box-shadow:0 0 4px var(--neon-green);
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <a class="nav-left" href="dashboard.html"><img src="assets/logo.png" alt="KADEMICS" class="logo-img"><span class="brand-name">KADEMICS</span></a>
+  <div class="nav-right">
+    <nav class="nav-links">
+      <a class="nav-link" href="archive.html"><i class="fa fa-folder"></i> Notes</a>
+      <a class="nav-link" href="oracle.html"><i class="fa fa-star"></i> Rating</a>
+      <a class="nav-link" href="gauntlet.html"><i class="fa fa-gamepad"></i> Quizzing</a>
+      <a class="nav-link" href="nexus.html"><i class="fa fa-comments"></i> Chat</a>
+    </nav>
+  </div>
+</nav>
+
+<div class="main-content">
+  <div class="page-container" style="max-width:860px">
+    <p class="section-title">[ IDENTITY DISK ]</p>
+    <h2 class="section-heading" style="margin-bottom:var(--space-xl)">Your Profile</h2>
+
+    <div style="display:grid;grid-template-columns:280px 1fr;gap:var(--space-xl);align-items:start">
+
+      <!-- -- Left: Identity Card --------------------------- -->
+      <div>
+        <div class="card" style="text-align:center;padding:var(--space-xl)">
+          <div class="avatar-wrap">
+            <img id="profile-avatar" src="assets/avatar-default.png" alt="Avatar">
+            <div class="avatar-ring"></div>
+          </div>
+          <h3 id="profile-name" style="margin-bottom:var(--space-sm)">*</h3>
+          <p id="profile-roll" style="font-size:0.78rem;color:var(--text-dim);letter-spacing:0.1em;margin-bottom:var(--space-sm)">*</p>
+          <span class="rank-badge" id="profile-rank">RECRUIT</span>
+          <p id="profile-email" style="font-size:0.72rem;color:var(--text-dim);margin-top:var(--space-md);letter-spacing:0.05em">*</p>
+
+          <div class="stats-grid" style="margin-top:var(--space-xl)">
+            <div class="stat-chip"><div class="n" id="st-total">0</div><div class="l">Submitted</div></div>
+            <div class="stat-chip"><div class="n" id="st-approved">0</div><div class="l">Approved</div></div>
+            <div class="stat-chip"><div class="n" id="st-pending">0</div><div class="l">Pending</div></div>
+          </div>
+
+          <button class="btn btn-red btn-sm" id="btn-logout" style="width:100%;margin-top:var(--space-md)">
+            <i class="fa fa-power-off"></i> DISCONNECT
+          </button>
+        </div>
+
+        <!-- Contribution Level -->
+        <div class="card" style="margin-top:var(--space-md)">
+          <p class="card-label">CONTRIBUTION LEVEL</p>
+          <div id="contrib-level" style="font-family:var(--font-head);font-size:1.1rem;margin-bottom:var(--space-sm)">INITIATE</div>
+          <div class="progress-bar">
+            <div class="progress-fill" id="contrib-bar" style="width:5%"></div>
+          </div>
+          <p style="font-size:0.72rem;color:var(--text-dim);margin-top:var(--space-sm)">
+            <span id="contrib-hint">Submit 1 approved item to level up ?</span>
+          </p>
+        </div>
+      </div>
+
+      <!-- -- Right: Tabs ---------------------------------- -->
+      <div>
+        <div class="ptabs">
+          <button class="ptab active" onclick="switchTab('submissions',this)"><i class="fa fa-satellite-dish"></i> Submissions</button>
+          <button class="ptab" onclick="switchTab('approved',this)"><i class="fa fa-check-circle"></i> Live on Site</button>
+          <button class="ptab" onclick="switchTab('activity',this)"><i class="fa fa-chart-line"></i> Activity</button>
+        </div>
+
+        <!-- -- Submissions History -->
+        <div class="ptab-panel active" id="tab-submissions">
+          <p style="font-size:0.75rem;color:var(--text-dim);margin-bottom:var(--space-md)">
+            All items you have submitted for admin review.
+          </p>
+          <div id="submissions-list">
+            <div class="loading"><div class="spinner"></div>&nbsp;SCANNING DATA...</div>
+          </div>
+        </div>
+
+        <!-- -- Approved / Live on Site -->
+        <div class="ptab-panel" id="tab-approved">
+          <p style="font-size:0.75rem;color:var(--neon-green);margin-bottom:var(--space-md)">
+            <i class="fa fa-check-circle"></i> &nbsp;These items were approved and are now <strong>live on the platform</strong>.
+          </p>
+          <div id="approved-list">
+            <div class="loading"><div class="spinner"></div>&nbsp;SCANNING DATA...</div>
+          </div>
+        </div>
+
+        <!-- -- Activity -->
+        <div class="ptab-panel" id="tab-activity">
+          <p style="font-size:0.75rem;color:var(--text-dim);margin-bottom:var(--space-lg)">
+            Recent contribution timeline.
+          </p>
+          <div id="activity-timeline"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { requireAuth, initProfileUI } from './js/auth.js';
+import { getUserRequests } from './js/api.js';
+import { API } from './js/api.js';
+
+const user = await requireAuth();
+
+
+// -- Populate identity card --------------------------------------------------
+document.getElementById('profile-avatar').src = user.avatar || 'assets/avatar-default.png';
+document.getElementById('profile-name').textContent  = user.name;
+document.getElementById('profile-roll').textContent  = `Roll: ${user.roll}`;
+document.getElementById('profile-rank').textContent  = user.rank || 'RECRUIT';
+document.getElementById('profile-email').textContent = user.email || '';
+
+document.getElementById('btn-logout').addEventListener('click', () => API.logout());
+
+// -- Load submissions --------------------------------------------------------
+const all      = getUserRequests(user.roll);
+const approved = all.filter(r => r.status === 'APPROVED');
+const pending  = all.filter(r => r.status === 'PENDING');
+const denied   = all.filter(r => r.status === 'DENIED');
+
+document.getElementById('st-total').textContent    = all.length;
+document.getElementById('st-approved').textContent = approved.length;
+document.getElementById('st-pending').textContent  = pending.length;
+
+// -- Contribution level ------------------------------------------------------
+const levels = [
+  { name:'INITIATE',   min:0,  pct:5,  next:'1 approved item' },
+  { name:'RECRUIT',    min:1,  pct:20, next:'3 approved items' },
+  { name:'AGENT',      min:3,  pct:40, next:'5 approved items' },
+  { name:'SPECIALIST', min:5,  pct:65, next:'10 approved items' },
+  { name:'ELITE',      min:10, pct:85, next:'20 approved items' },
+  { name:'LEGEND',     min:20, pct:100,next:'You are a legend!' },
+];
+const level = [...levels].reverse().find(l => approved.length >= l.min) || levels[0];
+document.getElementById('contrib-level').textContent = level.name;
+document.getElementById('contrib-bar').style.width  = level.pct + '%';
+document.getElementById('contrib-hint').textContent = `Next: ${level.next}`;
+
+// -- Tab switching -------------------------------------------------------------
+window.switchTab = function(name, el) {
+  document.querySelectorAll('.ptab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.ptab-panel').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById(`tab-${name}`)?.classList.add('active');
+};
+
+// -- Render Submissions --------------------------------------------------------
+const subList = document.getElementById('submissions-list');
+if (!all.length) {
+  subList.innerHTML = `
+    <div class="empty-state">
+      <div class="empty-icon"><i class="fa fa-satellite-dish"></i></div>
+      <h3>No submissions yet</h3>
+      <p>Use the <strong>+</strong> button in Archive, Oracle to submit content for review.</p>
+    </div>`;
+} else {
+  subList.innerHTML = all.map(r => submissionCard(r)).join('');
+}
+
+// -- Render Approved (Live) ----------------------------------------------------
+const appList = document.getElementById('approved-list');
+if (!approved.length) {
+  appList.innerHTML = `
+    <div class="empty-state">
+      <div class="empty-icon" style="color:rgba(57,255,20,0.2)"><i class="fa fa-check-circle"></i></div>
+      <h3>Nothing approved yet</h3>
+      <p>Submit items * once admin approves, they appear here and on the platform.</p>
+    </div>`;
+} else {
+  appList.innerHTML = approved.map(r => approvedCard(r)).join('');
+}
+
+// -- Render Activity Timeline --------------------------------------------------
+const timeline = document.getElementById('activity-timeline');
+if (!all.length) {
+  timeline.innerHTML = '<p style="color:var(--text-dim);font-size:0.82rem">No activity yet.</p>';
+} else {
+  timeline.innerHTML = `
+    <div style="position:relative;padding-left:var(--space-xl)">
+      <div style="position:absolute;left:8px;top:0;bottom:0;width:1px;background:rgba(0,243,255,0.15)"></div>
+      ${all.map(r => `
+        <div style="position:relative;margin-bottom:var(--space-md)">
+          <div style="position:absolute;left:-24px;top:4px;width:10px;height:10px;border-radius:50%;
+                      background:${statusColor(r.status)};box-shadow:0 0 6px ${statusColor(r.status)}"></div>
+          <div style="font-size:0.82rem;font-weight:600">${typeLabel(r.type)}</div>
+          <div style="font-size:0.75rem;color:var(--text-secondary);margin-top:2px">${escHtml(r.data?.name || r.data?.title || r.data?.room || '')}</div>
+          <div style="font-size:0.68rem;color:var(--text-dim);margin-top:2px">
+            ${r.createdAt?.replace('T',' ').substring(0,16)||''}
+            &nbsp;*&nbsp;<span style="color:${statusColor(r.status)}">${r.status}</span>
+            ${r.adminNote ? `&nbsp;*&nbsp;<span style="color:#888">Admin: ${escHtml(r.adminNote)}</span>` : ''}
+          </div>
+        </div>`).join('')}
+    </div>`;
+}
+
+// -- Helpers -------------------------------------------------------------------
+function submissionCard(r) {
+  const icon  = statusIcon(r.status);
+  const label = typeLabel(r.type);
+  const name  = r.data?.name || r.data?.title || r.data?.room || r.data?.fileName || '(unnamed)';
+  const date  = r.createdAt?.substring(0,10) || '';
+  const note  = r.adminNote ? `<div style="font-size:0.7rem;color:#888;margin-top:3px"><i class="fa fa-comment"></i> ${escHtml(r.adminNote)}</div>` : '';
+  const liveTag = r.status === 'APPROVED' ? `<span class="approved-live-tag">LIVE</span>` : '';
+  return `
+    <div class="submission-card">
+      <div class="sub-icon ${r.status.toLowerCase()}">${icon}</div>
+      <div>
+        <div style="font-size:0.75rem;letter-spacing:0.1em;color:var(--cyan);text-transform:uppercase;margin-bottom:2px">${label}</div>
+        <div style="font-weight:600;font-size:0.88rem">${escHtml(name)}${liveTag}</div>
+        <div class="sub-meta"><i class="fa fa-clock"></i> ${date}</div>
+        ${note}
+      </div>
+      <span class="sub-status ${r.status.toLowerCase()}">${r.status}</span>
+    </div>`;
+}
+
+function approvedCard(r) {
+  const name = r.data?.name || r.data?.title || r.data?.room || r.data?.fileName || '(unnamed)';
+  const link = linkForType(r.type);
+  return `
+    <div class="submission-card" style="border-color:rgba(57,255,20,0.25);cursor:pointer" onclick="window.location='${link}'">
+      <div class="sub-icon approved"><i class="fa fa-check"></i></div>
+      <div>
+        <div style="font-size:0.72rem;letter-spacing:0.1em;color:var(--neon-green);text-transform:uppercase;margin-bottom:2px">${typeLabel(r.type)}</div>
+        <div style="font-weight:600;font-size:0.88rem">${escHtml(name)}</div>
+        <div class="sub-meta">
+          <i class="fa fa-clock"></i> Submitted: ${r.createdAt?.substring(0,10)||''}
+          &nbsp;*&nbsp;
+          <i class="fa fa-check-circle" style="color:var(--neon-green)"></i> Approved: ${r.updatedAt?.substring(0,10)||''}
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+        <span class="sub-status approved">LIVE</span>
+        <span style="font-size:0.65rem;color:var(--text-dim)">View ?</span>
+      </div>
+    </div>`;
+}
+
+function typeLabel(type) {
+  const map = {
+    ADD_COURSE:'Course', ADD_BRANCH:'Branch', ADD_YEAR:'Year', ADD_SUBJECT:'Subject',
+    ADD_TEACHER:'Teacher (Archive)', ADD_NOTE:'Note Upload',
+    ADD_ORACLE_TEACHER:'Oracle Teacher', ADD_QUIZ:'Quiz', ADD_NEXUS_ROOM:'Nexus Room'
+  };
+  return map[type] || type;
+}
+
+function statusIcon(status) {
+  return status==='APPROVED' ? '<i class="fa fa-check"></i>'
+       : status==='DENIED'   ? '<i class="fa fa-times"></i>'
+       : '<i class="fa fa-clock"></i>';
+}
+
+function statusColor(status) {
+  return status==='APPROVED' ? 'var(--neon-green)'
+       : status==='DENIED'   ? '#666'
+       : 'var(--warning)';
+}
+
+function linkForType(type) {
+  return ['ADD_ORACLE_TEACHER'].includes(type) ? 'oracle.html'
+       : ['ADD_QUIZ'].includes(type) ? 'gauntlet.html'
+       : ['ADD_NEXUS_ROOM'].includes(type) ? 'nexus.html'
+       : 'archive.html';
+}
+
+function escHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+</script>
+</body>
+</html>
